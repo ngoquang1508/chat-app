@@ -7,9 +7,12 @@ import UserAvatar from "./UserAvatar";
 import StatusBadge from "./StatusBadge";
 import GroupChatAvatar from "./GroupChatAvatar";
 import { useSocketStore } from "@/stores/useSocketStore";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
-  const { conversations, activeConversationId } = useChatStore();
+  const { conversations, activeConversationId, setActiveConversation } =
+    useChatStore();
   const { user } = useAuthStore();
   const { onlineUsers } = useSocketStore();
 
@@ -32,6 +35,10 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
     if (!user || !otherUser) return;
   }
 
+  const handleCloseChat = () => {
+    setActiveConversation(null);
+  };
+
   return (
     <header className="sticky top-0 z-10 px-4 py-2 flex items-center bg-background">
       <div className="flex items-center gap-2 w-full">
@@ -48,13 +55,15 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
               <>
                 <UserAvatar
                   type={"sidebar"}
-                  name={otherUser?.displayName || "Moji"}
+                  name={otherUser?.displayName || "halo"}
                   avatarUrl={otherUser?.avatarUrl || undefined}
                 />
                 {/* todo: socket io */}
                 <StatusBadge
                   status={
-                    onlineUsers.includes(otherUser?._id ?? "") ? "online" : "offline"
+                    onlineUsers.includes(otherUser?._id ?? "")
+                      ? "online"
+                      : "offline"
                   }
                 />
               </>
@@ -72,6 +81,14 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
           </h2>
         </div>
       </div>
+      <Button
+        variant="destructiveOutline"
+        size="icon"
+        onClick={handleCloseChat}
+        className="size-7 rounded-lg text-muted-foreground/50 transition-all duration-150"
+      >
+        <X className="size-3.5" />
+      </Button>
     </header>
   );
 };

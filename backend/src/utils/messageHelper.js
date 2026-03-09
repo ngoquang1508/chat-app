@@ -9,7 +9,7 @@ export const updateConversationAfterCreateMessage = (
     lastMessage: {
       _id: message._id,
       content: message.content,
-      senderId,
+      sender: message.senderId,
       createdAt: message.createdAt,
     },
   });
@@ -18,18 +18,28 @@ export const updateConversationAfterCreateMessage = (
     const memberId = p.userId.toString();
     const isSender = memberId === senderId.toString();
     const prevCount = conversation.unreadCounts.get(memberId) || 0;
+
     conversation.unreadCounts.set(memberId, isSender ? 0 : prevCount + 1);
   });
 };
 
-export const emitNewMessage = (io, conversation, message) => {
+export const emitNewMessage = (io, conversation, message, sender) => {
   io.to(conversation._id.toString()).emit("new-message", {
     message,
     conversation: {
       _id: conversation._id,
-      lastMessage: conversation.lastMessage,
-      lastMessageAt: conversation.lastMessageAt,
+      lastMessage: {
+        _id: message._id,
+        content: message.content,
+        createdAt: message.createdAt,
+        sender: {
+          _id: sender._id,
+          displayName: sender.displayName,
+          avatarUrl: sender.avatarUrl,
+        },
+      },
+      lastMessageAt: message.createdAt,
     },
-    unreadCounts: conversation.unreadCounts,
+    unreadCounts: Object.fromEntries(conversation.unreadCounts),
   });
 };

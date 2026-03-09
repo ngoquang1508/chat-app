@@ -35,12 +35,14 @@ const groupSchema = new mongoose.Schema(
 
 const lastMessageSchema = new mongoose.Schema(
   {
-    _id: { type: String },
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
     content: {
       type: String,
       default: null,
     },
-    senderId: {
+    sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
@@ -93,7 +95,7 @@ const conversationSchema = new mongoose.Schema(
 );
 
 conversationSchema.index({
-  "participant.userId": 1,
+  "participants.userId": 1,
   lastMessageAt: -1,
 });
 

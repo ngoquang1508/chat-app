@@ -15,18 +15,22 @@ const MessageInput = ({ selectedConvo }: { selectedConvo: Conversation }) => {
 
   if (!user) return;
 
-  const sendMessage = async () => {
-    if (!value.trim()) return;
-    const currValue = value;
+  const sendMessage = async (content?: string) => {
+    const messageToSend = content ?? value;
+
+    if (!messageToSend.trim()) return;
+
     setValue("");
 
     try {
       if (selectedConvo.type === "direct") {
         const participants = selectedConvo.participants;
-        const otherUser = participants.filter((p) => p._id !== user._id)[0];
-        await sendDirectMessage(otherUser._id, currValue);
+        const otherUser = participants.find((p) => p._id !== user._id);
+        if (!otherUser) return;
+
+        await sendDirectMessage(otherUser._id, messageToSend);
       } else {
-        await sendGroupMessage(selectedConvo._id, currValue);
+        await sendGroupMessage(selectedConvo._id, messageToSend);
       }
     } catch (error) {
       console.error(error);
@@ -42,7 +46,7 @@ const MessageInput = ({ selectedConvo }: { selectedConvo: Conversation }) => {
   };
 
   return (
-    <div className="flex items-center gap-2 p-3 min-h-[56px] bg-background">
+    <div className="flex items-center gap-2 p-3 min-h-14 bg-background">
       <Button
         variant="ghost"
         size="icon"
@@ -53,7 +57,7 @@ const MessageInput = ({ selectedConvo }: { selectedConvo: Conversation }) => {
 
       <div className="flex-1 relative">
         <Input
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Soạn tin nhắn..."
@@ -75,13 +79,22 @@ const MessageInput = ({ selectedConvo }: { selectedConvo: Conversation }) => {
         </div>
       </div>
 
-      <Button
-        onClick={sendMessage}
-        className="bg-gradient-chat hover:shadow-glow transition-smooth hover:scale-105"
-        disabled={!value.trim()}
-      >
-        <Send className="size-4 text-white" />
-      </Button>
+      {!value.trim() ? (
+        <Button
+          onClick={() => sendMessage("👍")}
+          // className="hover:shadow-glow transition-smooth hover:scale-105"
+        >
+          👍
+        </Button>
+      ) : (
+        <Button
+          onClick={() => sendMessage()}
+          className="bg-gradient-chat hover:shadow-glow transition-smooth hover:scale-105"
+          disabled={!value.trim()}
+        >
+          <Send className="size-4 text-white" />
+        </Button>
+      )}
     </div>
   );
 };

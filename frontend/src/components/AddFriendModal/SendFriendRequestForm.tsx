@@ -1,6 +1,5 @@
 import type { UseFormRegister } from "react-hook-form";
 import type { IFormValues } from "../chat/AddFriendModal";
-import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { DialogFooter } from "../ui/dialog";
 import { Button } from "../ui/button";
@@ -25,22 +24,15 @@ const SendFriendRequestForm = ({
     <form onSubmit={onSubmit}>
       <div className="space-y-4">
         <span className="success-message">
-          Tìm thấy <span className="font-semibold">@{searchedUsername}</span> rồi nè
-          🎉
+          Tìm thấy <span className="font-semibold underline">@{searchedUsername}</span> !
         </span>
 
         <div className="space-y-4">
-          <Label
-            htmlFor="message"
-            className="text-sm font-semibold"
-          >
-            Giới thiệu
-          </Label>
           <Textarea
             id="message"
             rows={3}
-            placeholder="Chào bạn ~ Có thể kết bạn được không?..."
-            className="glass border-border/50 focus:border-primary/50 transition-smooth resize-none"
+            placeholder="Gửi lời chào kết bạn..."
+            className="mt-4 glass border-border/50 focus:border-primary/50 transition-smooth resize-none"
             {...register("message")}
           />
         </div>

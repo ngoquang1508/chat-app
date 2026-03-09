@@ -23,7 +23,7 @@
     --primary: 271 79% 47%;
     --primary-foreground: 210 40% 96.1%; /*slate-100*/
     /* Hồng */
-    --primary-glow: 320 100% 70%;
+    --primary-glow: 250 100% 70%;
 
     /* Secondary - lavender */
     --secondary: 270 50% 92%;
@@ -137,7 +137,7 @@
 
     --primary: 280 100% 70%;
     --primary-foreground: 240 15% 8%;
-    --primary-glow: 320 100% 80%;
+    --primary-glow: 250 100% 80%;
 
     --secondary: 270 20% 20%;
     --secondary-foreground: 280 100% 80%;
@@ -314,7 +314,8 @@
 
   /* Message bounce in animation */
   .message-bounce {
-    animation: messageSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    animation: messageSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      forwards;
   }
 
   @keyframes messageSlideIn {

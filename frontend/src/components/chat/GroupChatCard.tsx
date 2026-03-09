@@ -4,11 +4,16 @@ import type { Conversation } from "@/types/chat";
 import ChatCard from "./ChatCard";
 import UnreadCountBadge from "./UnreadCountBadge";
 import GroupChatAvatar from "./GroupChatAvatar";
+import { cn } from "@/lib/utils";
 
 const GroupChatCard = ({ convo }: { convo: Conversation }) => {
   const { user } = useAuthStore();
-  const { activeConversationId, setActiveConversation, messages, fetchMessages } =
-    useChatStore();
+  const {
+    activeConversationId,
+    setActiveConversation,
+    messages,
+    fetchMessages,
+  } = useChatStore();
 
   if (!user) return null;
 
@@ -21,10 +26,17 @@ const GroupChatCard = ({ convo }: { convo: Conversation }) => {
     }
   };
 
+  const senderId = convo.lastMessage?.sender._id;
+  const lastMessage = convo.lastMessage?.content ?? "";
+  const displayLastMessage =
+    senderId === user._id
+      ? `Bạn: ${lastMessage}`
+      : `${convo.lastMessage?.sender?.displayName || "Ẩn danh"}: ${lastMessage}`;
+
   return (
     <ChatCard
       convoId={convo._id}
-      name={name}
+      name={name + ` (${convo.participants.length} thành viên)`}
       timestamp={
         convo.lastMessage?.createdAt
           ? new Date(convo.lastMessage.createdAt)
@@ -36,15 +48,19 @@ const GroupChatCard = ({ convo }: { convo: Conversation }) => {
       leftSection={
         <>
           {unreadCount > 0 && <UnreadCountBadge unreadCount={unreadCount} />}
-          <GroupChatAvatar
-            participants={convo.participants}
-            type="chat"
-          />
+          <GroupChatAvatar participants={convo.participants} type="chat" />
         </>
       }
       subtitle={
-        <p className="text-sm truncate text-muted-foreground">
-          {convo.participants.length} thành viên
+        <p
+          className={cn(
+            "text-sm truncate",
+            unreadCount > 0
+              ? "font-medium text-foreground"
+              : "text-muted-foreground",
+          )}
+        >
+          {displayLastMessage}
         </p>
       }
     />

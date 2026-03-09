@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
 import { io } from "../socket/index.js";
@@ -5,18 +6,24 @@ import { io } from "../socket/index.js";
 export const createConversation = async (req, res) => {
   try {
     const { type, name, memberIds } = req.body;
-    const userId = req.user._id;
+    const userId = req.user._id.toString();
 
-    if (
-      !type ||
-      (type === "group" && !name) ||
-      !memberIds ||
-      !Array.isArray(memberIds) ||
-      memberIds.length === 0
-    ) {
+    if (type !== "direct" && type !== "group") {
       return res
         .status(400)
-        .json({ message: "Tên nhóm và danh sách thành viên là bắt buộc" });
+        .json({ message: "Conversation type không hợp lệ" });
+    }
+
+    if (
+      type === "group" &&
+      (!name ||
+        !memberIds ||
+        !Array.isArray(memberIds) ||
+        memberIds.length === 0)
+    ) {
+      return res.status(400).json({
+        message: "Tên nhóm và danh sách thành viên là bắt buộc",
+      });
     }
 
     let conversation;
@@ -35,15 +42,21 @@ export const createConversation = async (req, res) => {
           participants: [{ userId }, { userId: participantId }],
           lastMessageAt: new Date(),
         });
-
         await conversation.save();
       }
     }
 
     if (type === "group") {
+      const uniqueMemberIds = Array.from(
+        new Set(memberIds.map((id) => id.toString())),
+      ).filter((id) => id !== userId);
+
       conversation = new Conversation({
         type: "group",
-        participants: [{ userId }, ...memberIds.map((id) => ({ userId: id }))],
+        participants: [
+          { userId },
+          ...uniqueMemberIds.map((id) => ({ userId: id })),
+        ],
         group: {
           name,
           createdBy: userId,
@@ -54,17 +67,10 @@ export const createConversation = async (req, res) => {
       await conversation.save();
     }
 
-    if (!conversation) {
-      return res.status(400).json({ message: "Conversation type không hợp lệ" });
-    }
-
     await conversation.populate([
       { path: "participants.userId", select: "displayName avatarUrl" },
-      {
-        path: "seenBy",
-        select: "displayName avatarUrl",
-      },
-      { path: "lastMessage.senderId", select: "displayName avatarUrl" },
+      { path: "seenBy", select: "displayName avatarUrl" },
+      { path: "lastMessage.sender", select: "displayName avatarUrl" },
     ]);
 
     const participants = (conversation.participants || []).map((p) => ({
@@ -74,22 +80,17 @@ export const createConversation = async (req, res) => {
       joinedAt: p.joinedAt,
     }));
 
-    const formatted = { ...conversation.toObject(), participants };
+    const formatted = {...conversation.toObject(), participants} 
 
     if (type === "group") {
-      memberIds.forEach((userId) => {
-        io.to(userId).emit("new-group", formatted);
-      });
-    }
-
-    if (type === "direct") {
-      io.to(userId).emit("new-group", formatted);
-      io.to(memberIds[0]).emit("new-group", formatted);
+        memberIds.forEach((userId) => {
+          io.to(userId).emit("new-group", formatted);
+        })
     }
 
     return res.status(201).json({ conversation: formatted });
   } catch (error) {
-    console.error("Lỗi khi tạo conversation", error);
+    console.error("Lỗi khi tạo conversation: ", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
@@ -97,6 +98,7 @@ export const createConversation = async (req, res) => {
 export const getConversations = async (req, res) => {
   try {
     const userId = req.user._id;
+
     const conversations = await Conversation.find({
       "participants.userId": userId,
     })
@@ -106,7 +108,7 @@ export const getConversations = async (req, res) => {
         select: "displayName avatarUrl",
       })
       .populate({
-        path: "lastMessage.senderId",
+        path: "lastMessage.sender",
         select: "displayName avatarUrl",
       })
       .populate({
@@ -125,14 +127,16 @@ export const getConversations = async (req, res) => {
       return {
         ...convo.toObject(),
         unreadCounts: convo.unreadCounts || {},
-        participants,
+        participants: participants,
       };
     });
 
     return res.status(200).json({ conversations: formatted });
   } catch (error) {
-    console.error("Lỗi xảy ra khi lấy conversations", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    console.error("Lỗi khi gọi getConversations: ", error);
+    return res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
   }
 };
 
@@ -140,6 +144,12 @@ export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
     const { limit = 50, cursor } = req.query;
+
+    if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+      return res.status(400).json({
+        message: "conversationId không hợp lệ",
+      });
+    }
 
     const query = { conversationId };
 
@@ -152,21 +162,21 @@ export const getMessages = async (req, res) => {
       .limit(Number(limit) + 1);
 
     let nextCursor = null;
-
     if (messages.length > Number(limit)) {
       const nextMessage = messages[messages.length - 1];
       nextCursor = nextMessage.createdAt.toISOString();
       messages.pop();
     }
 
-    messages = messages.reverse();
+    // đảo ngược thứ tự tin nhắn tin nhắn
+    messages.reverse();
 
     return res.status(200).json({
       messages,
       nextCursor,
     });
   } catch (error) {
-    console.error("Lỗi xảy ra khi lấy messages", error);
+    console.error("Lỗi khi gọi getMessages: ", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
@@ -174,7 +184,9 @@ export const getMessages = async (req, res) => {
 export const getUserConversationsForSocketIO = async (userId) => {
   try {
     const conversations = await Conversation.find(
-      { "participants.userId": userId },
+      {
+        "participants.userId": userId,
+      },
       { _id: 1 },
     );
 
@@ -193,16 +205,20 @@ export const markAsSeen = async (req, res) => {
     const conversation = await Conversation.findById(conversationId).lean();
 
     if (!conversation) {
-      return res.status(404).json({ message: "Conversation không tồn tại" });
+      return res.status(404).json({
+        message: "Conversation không tồn tại",
+      });
     }
 
     const last = conversation.lastMessage;
 
     if (!last) {
-      return res.status(200).json({ message: "Không có tin nhắn để mark as seen" });
+      return res.status(200).json({
+        message: "Không có tin nhắn cuối cùng để đánh dấu là đã đọc.",
+      });
     }
 
-    if (last.senderId.toString() === userId) {
+    if (last.sender?.toString() === userId) {
       return res.status(200).json({ message: "Sender không cần mark as seen" });
     }
 
@@ -212,30 +228,29 @@ export const markAsSeen = async (req, res) => {
         $addToSet: { seenBy: userId },
         $set: { [`unreadCounts.${userId}`]: 0 },
       },
-      {
-        new: true,
-      },
-    );
+      { new: true },
+    )
+      .populate("participants.userId", "displayName avatarUrl")
+      .populate("lastMessage.sender", "displayName avatarUrl")
+      .populate("seenBy", "displayName avatarUrl");
 
     io.to(conversationId).emit("read-message", {
       conversation: updated,
       lastMessage: {
-        _id: updated?.lastMessage._id,
-        content: updated?.lastMessage.content,
-        createdAt: updated?.lastMessage.createdAt,
-        sender: {
-          _id: updated?.lastMessage.senderId,
-        },
+        _id: updated?.lastMessage?._id,
+        content: updated?.lastMessage?.content,
+        createdAt: updated?.lastMessage?.createdAt,
+        sender: updated?.lastMessage?.sender,
       },
     });
 
     return res.status(200).json({
       message: "Marked as seen",
-      seenBy: updated?.sennBy || [],
+      seenBy: updated?.seenBy || [],
       myUnreadCount: updated?.unreadCounts[userId] || 0,
     });
   } catch (error) {
-    console.error("Lỗi khi mark as seen", error);
+    console.error("Lỗi xảy ra khi gọi markAsSeem: ", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

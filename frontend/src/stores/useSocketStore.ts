@@ -33,30 +33,20 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     // new message
     socket.on("new-message", ({ message, conversation, unreadCounts }) => {
-      useChatStore.getState().addMessage(message);
+      const chatStore = useChatStore.getState();
 
-      const lastMessage = {
-        _id: conversation.lastMessage._id,
-        content: conversation.lastMessage.content,
-        createdAt: conversation.lastMessage.createdAt,
-        sender: {
-          _id: conversation.lastMessage.senderId,
-          displayName: "",
-          avatarUrl: null,
-        },
-      };
+      chatStore.addMessage(message);
 
       const updatedConversation = {
         ...conversation,
-        lastMessage,
         unreadCounts,
       };
 
-      if (useChatStore.getState().activeConversationId === message.conversationId) {
-        useChatStore.getState().markAsSeen();
+      if (chatStore.activeConversationId === message.conversationId) {
+        chatStore.markAsSeen();
       }
 
-      useChatStore.getState().updateConversation(updatedConversation);
+      chatStore.updateConversation(updatedConversation);
     });
 
     // read message

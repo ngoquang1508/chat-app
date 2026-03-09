@@ -25,10 +25,13 @@ export const useFriendStore = create<FriendState>((set, get) => ({
     try {
       set({ loading: true });
       const resultMessage = await friendService.sendFriendRequest(to, message);
-      return resultMessage;
+      return { resultMessage, status: "success" };
     } catch (error) {
       console.error("Lỗi xảy ra khi addFriend", error);
-      return "Lỗi xảy ra khi gửi kết bạn. Hãy thử lại";
+      return (
+        error?.response?.data?.message ||
+        "Lỗi xảy ra khi gửi kết bạn. Hãy thử lại"
+      );
     } finally {
       set({ loading: false });
     }
@@ -53,10 +56,13 @@ export const useFriendStore = create<FriendState>((set, get) => ({
   acceptRequest: async (requestId) => {
     try {
       set({ loading: true });
-      await friendService.acceptRequest(requestId);
+      const res = await friendService.acceptRequest(requestId);
+
+      const newFriend = res.newFriend;
 
       set((state) => ({
         receivedList: state.receivedList.filter((r) => r._id !== requestId),
+        friends: [...state.friends, newFriend],
       }));
     } catch (error) {
       console.error("Lỗi xảy ra khi acceptRequest", error);

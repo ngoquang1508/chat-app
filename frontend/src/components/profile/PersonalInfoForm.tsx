@@ -1,11 +1,5 @@
-import { Heart } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { CircleUser } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,21 +30,15 @@ const PersonalInfoForm = ({ userInfo }: Props) => {
     <Card className="glass-strong border-border/30">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Heart className="size-5 text-primary" />
+          <CircleUser className="size-5 text-primary" />
           Thông tin cá nhân
         </CardTitle>
-        <CardDescription>
-          Cập nhật chi tiết cá nhân và thông tin hồ sơ của bạn
-        </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {PERSONAL_FIELDS.map(({ key, label, type }) => (
-            <div
-              key={key}
-              className="space-y-2"
-            >
+            <div key={key} className="space-y-2">
               <Label htmlFor={key}>{label}</Label>
               <Input
                 id={key}

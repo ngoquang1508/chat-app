@@ -69,7 +69,7 @@ const SearchForm = ({
             className="flex-1 glass hover:text-destructive"
             onClick={onCancel}
           >
-            Cancel
+            Hủy
           </Button>
         </DialogClose>
 

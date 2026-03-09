@@ -1,6 +1,11 @@
 import { Card } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { formatOnlineTime, cn } from "@/lib/utils";
-import { MoreHorizontal } from "lucide-react";
+import { BellOff, MoreHorizontal, Pin, Trash2 } from "lucide-react";
 
 interface ChatCardProps {
   convoId: string;
@@ -29,7 +34,7 @@ const ChatCard = ({
       className={cn(
         "border-none p-3 cursor-pointer transition-smooth glass hover:bg-muted/30",
         isActive &&
-          "ring-2 ring-primary/50 bg-gradient-to-tr from-primary-glow/10 to-primary-foreground"
+          "ring-2 ring-primary/50 bg-linear-to-tr from-primary-glow/10 to-primary-foreground",
       )}
       onClick={() => onSelect(convoId)}
     >
@@ -41,7 +46,7 @@ const ChatCard = ({
             <h3
               className={cn(
                 "font-semibold text-sm truncate",
-                unreadCount && unreadCount > 0 && "text-foreground"
+                unreadCount && unreadCount > 0 && "text-foreground",
               )}
             >
               {name}
@@ -53,8 +58,36 @@ const ChatCard = ({
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 flex-1 min-w-0">{subtitle}</div>
-            <MoreHorizontal className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 hover:size-5 transition-smooth" />
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+              {subtitle}
+            </div>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <MoreHorizontal
+                  onClick={(e) => e.stopPropagation()}
+                  className={cn(
+                    "size-4 text-muted-foreground transition-smooth cursor-pointer",
+                    isActive ? "opacity-100" : "opacity-40 hover:opacity-100",
+                  )}
+                />
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-40 p-1"
+                align="end"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted">
+                  <Pin className="size-3.5" /> Ghim
+                </button>
+                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted">
+                  <BellOff className="size-3.5" /> Tắt thông báo
+                </button>
+                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-destructive">
+                  <Trash2 className="size-3.5" /> Xóa đoạn chat
+                </button>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>

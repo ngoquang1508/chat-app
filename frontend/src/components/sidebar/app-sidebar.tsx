@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, UserPlus, Users } from "lucide-react";
 import { Switch } from "../ui/switch";
 import CreateNewChat from "../chat/CreateNewChat";
 import NewGroupChatModal from "../chat/NewGroupChatModal";
@@ -23,17 +23,42 @@ import { useThemeStore } from "@/stores/useThemeStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import ConversationSkeleton from "../skeleton/ConversationSkeleton";
 import { useChatStore } from "@/stores/useChatStore";
+import { useMemo, useState } from "react";
+import ConversationSearch from "@/components/sidebar/ConversationSearch";
+import type { Conversation } from "@/types/chat";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isDark, toggleTheme } = useThemeStore();
   const { user } = useAuthStore();
-  const { convoLoading } = useChatStore();
+  const { convoLoading, conversations } = useChatStore();
+
+  const [openGroupModal, setOpenGroupModal] = useState(false);
+  const [openAddFriendModal, setOpenAddFriendModal] = useState(false);
+
+  const [query, setQuery] = useState("");
+
+  const filteredGroups = useMemo(() => {
+    if (!query.trim()) return [];
+    return conversations.filter(
+      (convo: Conversation) =>
+        convo.type === "group" &&
+        convo.group?.name?.toLowerCase().includes(query.toLowerCase()),
+    );
+  }, [query, conversations]);
+
+  const filteredDirects = useMemo(() => {
+    if (!query.trim()) return [];
+    return conversations.filter((convo: Conversation) => {
+      if (convo.type !== "direct") return false;
+      const other = convo.participants.find((u) => u._id !== user?._id);
+      return other?.displayName?.toLowerCase().includes(query.toLowerCase());
+    });
+  }, [query, conversations, user]);
+
+  const hasResult = filteredGroups.length > 0 || filteredDirects.length > 0;
 
   return (
-    <Sidebar
-      variant="inset"
-      {...props}
-    >
+    <Sidebar variant="inset" {...props}>
       {/* Header */}
       <SidebarHeader>
         <SidebarMenu>
@@ -45,7 +70,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <div className="flex w-full items-center px-2 justify-between">
-                  <h1 className="text-xl font-bold text-white">Moji</h1>
+                  <h1 className="text-xl font-bold text-white">HALO</h1>
                   <div className="flex items-center gap-2">
                     <Sun className="size-4 text-white/80" />
                     <Switch
@@ -59,45 +84,92 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            {/* Search conversations */}
+            <ConversationSearch setQuery={setQuery} />
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
 
       {/* Content */}
       <SidebarContent className="beautiful-scrollbar">
-        {/* New Chat */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <CreateNewChat />
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {hasResult ? (
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel className="uppercase">
+                Kết quả tìm kiếm
+              </SidebarGroupLabel>
+              <SidebarContent>
+                <div className="beautiful-scrollbar">
+                  <GroupChatList dataSearch={filteredGroups} />
+                  <DirectMessageList dataSearch={filteredDirects} />
+                </div>
+              </SidebarContent>
+            </SidebarGroup>
+          </>
+        ) : query.trim() ? (
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            Không tìm thấy hội thoại nào.
+          </p>
+        ) : (
+          <>
+            {/* Group Chat */}
+            <SidebarGroup>
+              <SidebarGroupLabel className="uppercase">
+                nhóm chat
+              </SidebarGroupLabel>
+              <SidebarGroupAction
+                title="Tạo nhóm"
+                className="cursor-pointer"
+                onClick={() => setOpenGroupModal(true)}
+              >
+                <Users className="size-4" />
+              </SidebarGroupAction>
 
-        {/* Group Chat */}
-        <SidebarGroup>
-          <div className="flex items-center justify-between">
-            <SidebarGroupLabel className="uppercase">nhóm chat</SidebarGroupLabel>
-            <NewGroupChatModal />
-          </div>
+              <SidebarGroupContent>
+                {convoLoading ? <ConversationSkeleton /> : <GroupChatList />}
+              </SidebarGroupContent>
+            </SidebarGroup>
 
-          <SidebarGroupContent>
-            {convoLoading ? <ConversationSkeleton /> : <GroupChatList />}
-          </SidebarGroupContent>
-        </SidebarGroup>
+            {/* Direct Message */}
+            <SidebarGroup>
+              <SidebarGroupLabel className="uppercase">
+                bạn bè
+              </SidebarGroupLabel>
+              <SidebarGroupAction
+                title="Kết Bạn"
+                className="cursor-pointer"
+                onClick={() => setOpenAddFriendModal(true)}
+              >
+                <UserPlus className="size-4" />
+              </SidebarGroupAction>
 
-        {/* Dirrect Message */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="uppercase">bạn bè</SidebarGroupLabel>
-          <SidebarGroupAction
-            title="Kết Bạn"
-            className="cursor-pointer"
-          >
-            <AddFriendModal />
-          </SidebarGroupAction>
+              {/* New Chat */}
+              <SidebarGroupContent>
+                <CreateNewChat />
+              </SidebarGroupContent>
 
-          <SidebarGroupContent>
-            {convoLoading ? <ConversationSkeleton /> : <DirectMessageList />}
-          </SidebarGroupContent>
-        </SidebarGroup>
+              <SidebarGroupContent>
+                {convoLoading ? (
+                  <ConversationSkeleton />
+                ) : (
+                  <DirectMessageList />
+                )}
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
+
+      {/* Modals */}
+      <NewGroupChatModal
+        open={openGroupModal}
+        onOpenChange={setOpenGroupModal}
+      />
+      <AddFriendModal
+        open={openAddFriendModal}
+        onOpenChange={setOpenAddFriendModal}
+      />
 
       {/* Footer */}
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>

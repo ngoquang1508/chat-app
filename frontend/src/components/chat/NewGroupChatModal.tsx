@@ -1,15 +1,14 @@
 import { useFriendStore } from "@/stores/useFriendStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { UserPlus, Users } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import type { Friend } from "@/types/user";
@@ -18,16 +17,26 @@ import SelectedUsersList from "../newGroupChat/SelectedUsersList";
 import { toast } from "sonner";
 import { useChatStore } from "@/stores/useChatStore";
 
-const NewGroupChatModal = () => {
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const NewGroupChatModal = ({ open, onOpenChange }: Props) => {
   const [groupName, setGroupName] = useState("");
   const [search, setSearch] = useState("");
   const { friends, getFriends } = useFriendStore();
   const [invitedUsers, setInvitedUsers] = useState<Friend[]>([]);
   const { loading, createConversation } = useChatStore();
 
-  const handleGetFriends = async () => {
+  const loadFriends = async () => {
     await getFriends();
   };
+  useEffect(() => {
+  if (open && friends.length === 0) {
+    loadFriends();
+  }
+}, [open]);
 
   const handleSelectFriend = (friend: Friend) => {
     setInvitedUsers([...invitedUsers, friend]);
@@ -49,50 +58,40 @@ const NewGroupChatModal = () => {
       await createConversation(
         "group",
         groupName,
-        invitedUsers.map((u) => u._id)
+        invitedUsers.map((u) => u._id),
       );
 
       setSearch("");
       setInvitedUsers([]);
+      setGroupName("");
+      onOpenChange(false);
     } catch (error) {
-      console.error("Lỗi xảy ra khi handleSubmit trong NewGroupChatModal:", error);
+      console.error(
+        "Lỗi xảy ra khi handleSubmit trong NewGroupChatModal:",
+        error,
+      );
     }
   };
 
   const filteredFriends = friends.filter(
     (friend) =>
       friend.displayName.toLowerCase().includes(search.toLowerCase()) &&
-      !invitedUsers.some((u) => u._id === friend._id)
+      !invitedUsers.some((u) => u._id === friend._id),
   );
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          onClick={handleGetFriends}
-          className="flex z-10 justify-center items-center size-5 rounded-full hover:bg-sidebar-accent transition cursor-pointer"
-        >
-          <Users className="size-4" />
-          <span className="sr-only">Tạo nhóm</span>
-        </Button>
-      </DialogTrigger>
-
-      <DialogContent className="sm:max-w-[425px] border-none">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        aria-describedby={undefined}
+        className="sm:max-w-106.25 border-none"
+      >
         <DialogHeader>
           <DialogTitle className="capitalize">tạo nhóm chat mới</DialogTitle>
         </DialogHeader>
 
-        <form
-          className="space-y-4"
-          onSubmit={handleSubmit}
-        >
-          {/* tên nhóm */}
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label
-              htmlFor="groupName"
-              className="text-sm font-semibold"
-            >
+            <Label htmlFor="groupName" className="text-sm font-semibold">
               Tên nhóm
             </Label>
             <Input
@@ -105,12 +104,8 @@ const NewGroupChatModal = () => {
             />
           </div>
 
-          {/* mời thành viên */}
           <div className="space-y-2">
-            <Label
-              htmlFor="invite"
-              className="text-sm font-semibold"
-            >
+            <Label htmlFor="invite" className="text-sm font-semibold">
               Mời thành viên
             </Label>
 
@@ -122,7 +117,6 @@ const NewGroupChatModal = () => {
               className="flex-1"
             />
 
-            {/* danh sách gợi ý */}
             {search && filteredFriends.length > 0 && (
               <IniviteSuggestionList
                 filteredFriends={filteredFriends}
@@ -130,7 +124,6 @@ const NewGroupChatModal = () => {
               />
             )}
 
-            {/* danh sách user đã chọn */}
             <SelectedUsersList
               invitedUsers={invitedUsers}
               onRemove={handleRemoveFriend}

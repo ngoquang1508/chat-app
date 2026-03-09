@@ -1,3 +1,4 @@
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { LogOut } from "lucide-react";
@@ -16,13 +17,16 @@ const Logout = () => {
   };
 
   return (
-    <Button
-      variant="completeGhost"
+    <DropdownMenuItem
+      className="cursor-pointer"
+      variant="destructive"
       onClick={handleLogout}
     >
-      <LogOut className="text-destructive" />
-      Log out
-    </Button>
+      <Button variant="completeGhost">
+        <LogOut className="text-destructive" />
+        Log out
+      </Button>
+    </DropdownMenuItem>
   );
 };
 

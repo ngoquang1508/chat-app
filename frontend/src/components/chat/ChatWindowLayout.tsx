@@ -5,13 +5,11 @@ import ChatWindowHeader from "./ChatWindowHeader";
 import ChatWindowBody from "./ChatWindowBody";
 import MessageInput from "./MessageInput";
 import { useEffect } from "react";
-import ChatWindowSkeleton from "../skeleton/ChatWindowSkeleton";
 
 const ChatWindowLayout = () => {
   const {
     activeConversationId,
     conversations,
-    messageLoading: loading,
     markAsSeen,
   } = useChatStore();
 
@@ -36,10 +34,6 @@ const ChatWindowLayout = () => {
 
   if (!selectedConvo) {
     return <ChatWelcomeScreen />;
-  }
-
-  if (loading) {
-    return <ChatWindowSkeleton />;
   }
 
   return (

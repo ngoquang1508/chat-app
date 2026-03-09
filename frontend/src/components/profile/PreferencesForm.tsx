@@ -24,18 +24,17 @@ const PreferencesForm = () => {
           <Sun className="h-5 w-5 text-primary" />
           Tuỳ chỉnh ứng dụng
         </CardTitle>
-        <CardDescription>Cá nhân hoá trải nghiệm trò chuyện của bạn</CardDescription>
+        <CardDescription>
+          Cá nhân hoá trải nghiệm trò chuyện của bạn
+        </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
         {/* Dark Mode */}
         <div className="flex items-center justify-between">
           <div>
-            <Label
-              htmlFor="theme-toggle"
-              className="text-base font-medium"
-            >
-              Chế độ tối
+            <Label htmlFor="theme-toggle" className="text-base font-medium">
+              Chế độ {isDark ? "Sáng" : "Tối"}
             </Label>
             <p className="text-sm text-muted-foreground">
               Chuyển đổi giữa giao diện sáng và tối
@@ -56,10 +55,7 @@ const PreferencesForm = () => {
         {/* Online Status */}
         <div className="flex items-center justify-between">
           <div>
-            <Label
-              htmlFor="online-status"
-              className="text-base font-medium"
-            >
+            <Label htmlFor="online-status" className="text-base font-medium">
               Hiển thị trạng thái online
             </Label>
             <p className="text-sm text-muted-foreground">

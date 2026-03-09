@@ -21,10 +21,13 @@ import Logout from "../auth/Logout";
 import { useState } from "react";
 import FriendRequestDialog from "../friendRequest/FriendRequestDialog";
 import ProfileDialog from "../profile/ProfileDialog";
+import { useThemeStore } from "@/stores/useThemeStore";
+import { cn } from "@/lib/utils";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
-  const [friendRequestOpen, setfriendRequestOpen] = useState(false);
+  const { isDark } = useThemeStore();
+  const [friendRequestOpen, setFriendRequestOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   return (
@@ -40,6 +43,7 @@ export function NavUser({ user }: { user: User }) {
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
                     src={user.avatarUrl}
+                    loading="lazy"
                     alt={user.displayName}
                   />
                   <AvatarFallback className="rounded-lg">
@@ -47,7 +51,9 @@ export function NavUser({ user }: { user: User }) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.displayName}</span>
+                  <span className="truncate font-medium">
+                    {user.displayName}
+                  </span>
                   <span className="truncate text-xs">{user.username}</span>
                 </div>
                 <ChevronsUpDown className="ml-auto size-4" />
@@ -64,6 +70,7 @@ export function NavUser({ user }: { user: User }) {
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage
                       src={user.avatarUrl}
+                      loading="lazy"
                       alt={user.username}
                     />
                     <AvatarFallback className="rounded-lg">
@@ -71,29 +78,42 @@ export function NavUser({ user }: { user: User }) {
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.displayName}</span>
+                    <span className="truncate font-medium">
+                      {user.displayName}
+                    </span>
                     <span className="truncate text-xs">{user.username}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => setProfileOpen(true)}>
-                  <UserIcon className="text-muted-foreground dark:group-focus:!text-accent-foreground" />
+                <DropdownMenuItem
+                  className={cn(
+                    "py-3",
+                    isDark
+                      ? "text-white! hover:bg-gray-600!"
+                      : "hover:bg-gray-300!",
+                  )}
+                  onClick={() => setProfileOpen(true)}
+                >
+                  <UserIcon className="text-muted-foreground dark:group-focus:text-accent-foreground!" />
                   Tài Khoản
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setfriendRequestOpen(true)}>
-                  <Bell className="text-muted-foreground dark:group-focus:!text-accent-foreground" />
+                <DropdownMenuItem
+                  className={cn(
+                    "py-3",
+                    isDark
+                      ? "text-white! hover:bg-gray-600!"
+                      : "hover:bg-gray-300!",
+                  )}
+                  onClick={() => setFriendRequestOpen(true)}
+                >
+                  <Bell className="text-muted-foreground dark:group-focus:text-accent-foreground!" />
                   Thông Báo
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="cursor-pointer"
-                variant="destructive"
-              >
-                <Logout />
-              </DropdownMenuItem>
+              <Logout />
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
@@ -101,13 +121,10 @@ export function NavUser({ user }: { user: User }) {
 
       <FriendRequestDialog
         open={friendRequestOpen}
-        setOpen={setfriendRequestOpen}
+        setOpen={setFriendRequestOpen}
       />
 
-      <ProfileDialog
-        open={profileOpen}
-        setOpen={setProfileOpen}
-      />
+      <ProfileDialog open={profileOpen} setOpen={setProfileOpen} />
     </>
   );
 }

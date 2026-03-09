@@ -34,7 +34,7 @@ const MessageItem = ({
   );
 
   return (
-    <>
+    <div className="flex flex-col" data-message-item>
       {/* time */}
       {isShowTime && (
         <span className="flex justify-center text-xs text-muted-foreground px-1">
@@ -44,7 +44,7 @@ const MessageItem = ({
 
       <div
         className={cn(
-          "flex gap-2 message-bounce mt-1",
+          "flex items-center gap-2 message-bounce mt-1",
           message.isOwn ? "justify-end" : "justify-start"
         )}
       >
@@ -54,7 +54,7 @@ const MessageItem = ({
             {isGroupBreak && (
               <UserAvatar
                 type="chat"
-                name={participant?.displayName ?? "Moji"}
+                name={participant?.displayName ?? "halo"}
                 avatarUrl={participant?.avatarUrl ?? undefined}
               />
             )}
@@ -74,7 +74,7 @@ const MessageItem = ({
               message.isOwn ? "chat-bubble-sent border-0" : "chat-bubble-received"
             )}
           >
-            <p className="text-sm leading-relaxed break-words">{message.content}</p>
+            <p className="text-sm leading-relaxed wrap-break-word">{message.content}</p>
           </Card>
 
           {/* seen/ delivered */}
@@ -88,12 +88,12 @@ const MessageItem = ({
                   : "bg-muted text-muted-foreground"
               )}
             >
-              {lastMessageStatus}
+              {lastMessageStatus === "seen" ? "Đã xem" : "Đã gửi"}
             </Badge>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

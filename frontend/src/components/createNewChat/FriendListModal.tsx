@@ -5,16 +5,22 @@ import { Card } from "../ui/card";
 import UserAvatar from "../chat/UserAvatar";
 import { useChatStore } from "@/stores/useChatStore";
 
-const FriendListModal = () => {
+interface FriendListModalProps {
+  onClose: () => void;
+}
+
+const FriendListModal = ({ onClose }: FriendListModalProps) => {
   const { friends } = useFriendStore();
-  const { createConversation } = useChatStore();
+  const { createConversation, fetchMessages } = useChatStore();
 
   const handleAddConversation = async (friendId: string) => {
     await createConversation("direct", "", [friendId]);
+    await fetchMessages();
+    onClose();
   };
 
   return (
-    <DialogContent className="glass max-w-md">
+    <DialogContent aria-describedby={undefined} className="glass max-w-md">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl capitalize">
           <MessageCircleMore className="size-5" />
@@ -61,7 +67,7 @@ const FriendListModal = () => {
           {friends.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="size-12 mx-auto mb-3 opacity-50" />
-              Chưa có bạn bè. Thêm bạn vô để tám!
+              Chưa có bạn bè nào!
             </div>
           )}
         </div>

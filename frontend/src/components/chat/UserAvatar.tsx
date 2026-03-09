@@ -12,7 +12,7 @@ const UserAvatar = ({ type, name, avatarUrl, className }: IUserAvatarProps) => {
   const bgColor = !avatarUrl ? "bg-blue-500" : "";
 
   if (!name) {
-    name = "Moji";
+    name = "Halo";
   }
 
   return (
@@ -27,6 +27,7 @@ const UserAvatar = ({ type, name, avatarUrl, className }: IUserAvatarProps) => {
       <AvatarImage
         src={avatarUrl}
         alt={name}
+        loading="lazy"
       />
       <AvatarFallback className={`${bgColor} text-white font-semibold`}>
         {name.charAt(0)}

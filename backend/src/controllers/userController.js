@@ -22,7 +22,10 @@ export const searchUserByUsername = async (req, res) => {
       return res.status(400).json({ message: "Cần cung cấp username trong query." });
     }
 
-    const user = await User.findOne({ username }).select(
+    const user = await User.findOne({
+      username: username,
+      _id: {$ne: req.user._id}
+     }).select(
       "_id displayName username avatarUrl"
     );
 
