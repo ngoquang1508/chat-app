@@ -261,6 +261,28 @@ export const useChatStore = create<ChatState>()(
           set({ loading: false });
         }
       },
+      leaveConversation: async (convoId) => {
+        try {
+          set({ loading: true });
+
+          await chatService.leaveConversation(convoId);
+
+          set((state) => ({
+            conversations: state.conversations.filter((c) => c._id !== convoId),
+            activeConversationId:
+              state.activeConversationId === convoId
+                ? null
+                : state.activeConversationId,
+          }));
+
+          toast.info("Đã rời nhóm");
+        } catch (error) {
+          console.error("Lỗi xảy ra khi gọi leaveConversation: ", error);
+          toast.error("Có lỗi xảy ra. Vui lòng thử lại");
+        } finally {
+          set({ loading: false });
+        }
+      },
     }),
     {
       name: "chat-storage",

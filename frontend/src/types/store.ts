@@ -70,6 +70,7 @@ export interface ChatState {
     memberIds: string[]
   ) => Promise<void>;
   hideConversation: (convoId: string) => Promise<void>;
+  leaveConversation: (convoId: string) => Promise<void>;
 }
 
 export interface SocketState {

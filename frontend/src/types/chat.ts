@@ -47,6 +47,7 @@ export interface ConversationResponse {
 export interface Message {
   _id: string;
   conversationId: string;
+  type: "text" | "system";
   senderId: string;
   content: string | null;
   imgUrl?: string | null;

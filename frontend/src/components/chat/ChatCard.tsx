@@ -29,7 +29,11 @@ const ChatCard = ({
   leftSection,
   subtitle,
 }: ChatCardProps) => {
-  const { hideConversation, conversations } = useChatStore();
+  const { hideConversation, leaveConversation, conversations } = useChatStore();
+
+  const handleLeaveConversation = async (convoId: string) => {
+    await leaveConversation(convoId);
+  };
 
   const handleHideConversation = async (convoId: string) => {
     await hideConversation(convoId);
@@ -94,7 +98,7 @@ const ChatCard = ({
                 </button>
                 {isGropChat ? (
                   <button
-                    onClick={async () => alert("Roi nhom")}
+                    onClick={async () => handleLeaveConversation(convoId)}
                     className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-destructive"
                   >
                     <LogOut className="size-3.5" /> Rời nhóm

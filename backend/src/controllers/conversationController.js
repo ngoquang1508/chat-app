@@ -287,3 +287,64 @@ export const hideConversation = async (req, res) => {
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
+
+export const leaveConversation = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const userId = req.user._id;
+
+    const conversation = await Conversation.findById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation không tồn tại" })
+    }
+
+    if (conversation.type !== "group") {
+      return res.status(400).json({ message: "Chỉ áp dụng cho group chat" });
+    }
+
+    const isMember = conversation.participants.some((p) => p.userId.toString() === userId.toString());
+
+    if (!isMember) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const isOwner = conversation.group.createdBy.toString() === userId.toString(); // kiểm tra có phải người tạo nhóm không
+    const memberCount = conversation.participants.length;
+
+    // nếu nhóm chỉ có 1 người -> xóa group
+    if (isOwner && memberCount === 1) {
+      await Conversation.findByIdAndDelete(conversationId);
+      await Message.deleteMany({ conversationId });
+      return res.status(200).json({ message: "Đã giải tán nhóm" });
+    }
+
+    if (isOwner && memberCount > 1) {
+      // chuyển owner cho người join sớm nhất (không phải mình)
+      const newOwner = conversation.participants.find((p) => p.userId.toString() !== userId.toString());
+      await Conversation.findByIdAndUpdate(conversationId, {
+        $pull: { participants: { userId } },
+        $set: { "group.createdBy": newOwner.userId }
+      });
+    } else {
+      // member thường -> rời nhóm
+      await Conversation.findByIdAndUpdate(conversationId, {
+        $pull: { participants: { userId } },
+      })
+    }
+
+    // tạo system message thông báo rời nhóm
+    await Message.create({
+      conversationId,
+      senderId: userId,
+      type: "system",
+      content: `${req.user.displayName} đã rời nhóm.`,
+    })
+
+    return res.status(200).json({ message: "Đã rời nhóm" });
+
+  } catch (error) {
+    console.error("Lỗi khi leaveConversation: ", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};

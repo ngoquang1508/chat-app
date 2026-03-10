@@ -8,6 +8,11 @@ const messageSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    type: {
+      type: String,
+      enum: ["text", "system"],
+      default: "text"
+    },
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

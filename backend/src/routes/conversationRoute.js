@@ -4,7 +4,8 @@ import {
   getConversations,
   getMessages,
   markAsSeen,
-  hideConversation
+  hideConversation,
+  leaveConversation,
 } from "../controllers/conversationController.js";
 import { checkFriendship } from "../middlewares/friendMiddleware.js";
 
@@ -15,5 +16,6 @@ router.get("/", getConversations);
 router.get("/:conversationId/messages", getMessages);
 router.patch("/:conversationId/seen", markAsSeen);
 router.patch("/:conversationId/hide", hideConversation);
+router.patch("/:conversationId/leave", leaveConversation);
 
 export default router;
