@@ -15,9 +15,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { isMuted } from "@/lib/notification";
 import { formatOnlineTime, cn } from "@/lib/utils";
 import { useChatStore } from "@/stores/useChatStore";
-import { BellOff, EyeOff, LogOut, MoreHorizontal, Pin } from "lucide-react";
+import {
+  Bell,
+  BellOff,
+  EyeOff,
+  LogOut,
+  MoreHorizontal,
+  Pin,
+} from "lucide-react";
 
 interface ChatCardProps {
   convoId: string;
@@ -40,18 +48,17 @@ const ChatCard = ({
   leftSection,
   subtitle,
 }: ChatCardProps) => {
-  const { hideConversation, leaveConversation, conversations } = useChatStore();
+  const {
+    hideConversation,
+    leaveConversation,
+    conversations,
+    muteConversation,
+  } = useChatStore();
 
-  const handleLeaveConversation = async (convoId: string) => {
-    await leaveConversation(convoId);
-  };
+  const convo = conversations.find((c) => c._id === convoId);
+  const isGroupChat = convo?.type === "group";
+  const muted = convo ? isMuted(convo) : false;
 
-  const handleHideConversation = async (convoId: string) => {
-    await hideConversation(convoId);
-  };
-
-  const isGroupChat =
-    conversations.find((c) => c._id === convoId)?.type === "group";
   return (
     <Card
       key={convoId}
@@ -104,8 +111,19 @@ const ChatCard = ({
                 <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted">
                   <Pin className="size-3.5" /> Ghim
                 </button>
-                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted">
-                  <BellOff className="size-3.5" /> Tắt thông báo
+                <button
+                  onClick={() => muteConversation(convoId)}
+                  className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted"
+                >
+                  {muted ? (
+                    <>
+                      <Bell className="size-3.5" /> Bật thông báo
+                    </>
+                  ) : (
+                    <>
+                      <BellOff className="size-3.5" /> Tắt thông báo
+                    </>
+                  )}
                 </button>
                 {isGroupChat ? (
                   <AlertDialog>
@@ -125,7 +143,7 @@ const ChatCard = ({
                         <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          onClick={() => handleLeaveConversation(convoId)}
+                          onClick={() => leaveConversation(convoId)}
                         >
                           Rời nhóm
                         </AlertDialogAction>
@@ -134,7 +152,7 @@ const ChatCard = ({
                   </AlertDialog>
                 ) : (
                   <button
-                    onClick={async () => handleHideConversation(convoId)}
+                    onClick={async () => hideConversation(convoId)}
                     className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-muted-foreground"
                   >
                     <EyeOff className="size-3.5" /> Ẩn đoạn chat

@@ -47,7 +47,7 @@ export const createConversation = async (req, res) => {
         // clear hiddenFor cho user hiện tại khi mở lại convo bị ẩn
         await Conversation.findByIdAndUpdate(conversation._id, {
           $pull: { hiddenFor: userId },
-        })
+        });
 
         conversation = await Conversation.findById(conversation._id);
       }
@@ -154,7 +154,10 @@ export const getConversationById = async (req, res) => {
   try {
     const { conversationId } = req.params;
     const conversation = await Conversation.findById(conversationId)
-      .populate({ path: "participants.userId", select: "displayName avatarUrl" })
+      .populate({
+        path: "participants.userId",
+        select: "displayName avatarUrl",
+      })
       .populate({ path: "lastMessage.sender", select: "displayName avatarUrl" })
       .populate({ path: "seenBy", select: "displayName avatarUrl" });
 
@@ -169,7 +172,9 @@ export const getConversationById = async (req, res) => {
       joinedAt: p.joinedAt,
     }));
 
-    return res.status(200).json({ conversation: { ...conversation.toObject(), participants } });
+    return res
+      .status(200)
+      .json({ conversation: { ...conversation.toObject(), participants } });
   } catch (error) {
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
@@ -328,20 +333,23 @@ export const leaveConversation = async (req, res) => {
     const conversation = await Conversation.findById(conversationId);
 
     if (!conversation) {
-      return res.status(404).json({ message: "Conversation không tồn tại" })
+      return res.status(404).json({ message: "Conversation không tồn tại" });
     }
 
     if (conversation.type !== "group") {
       return res.status(400).json({ message: "Chỉ áp dụng cho group chat" });
     }
 
-    const isMember = conversation.participants.some((p) => p.userId.toString() === userId.toString());
+    const isMember = conversation.participants.some(
+      (p) => p.userId.toString() === userId.toString(),
+    );
 
     if (!isMember) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    const isOwner = conversation.group.createdBy.toString() === userId.toString(); // kiểm tra có phải người tạo nhóm không
+    const isOwner =
+      conversation.group.createdBy.toString() === userId.toString(); // kiểm tra có phải người tạo nhóm không
     const memberCount = conversation.participants.length;
 
     // nếu nhóm chỉ có 1 người -> xóa group
@@ -353,16 +361,18 @@ export const leaveConversation = async (req, res) => {
 
     if (isOwner && memberCount > 1) {
       // chuyển owner cho người join sớm nhất (không phải mình)
-      const newOwner = conversation.participants.find((p) => p.userId.toString() !== userId.toString());
+      const newOwner = conversation.participants.find(
+        (p) => p.userId.toString() !== userId.toString(),
+      );
       await Conversation.findByIdAndUpdate(conversationId, {
         $pull: { participants: { userId } },
-        $set: { "group.createdBy": newOwner.userId }
+        $set: { "group.createdBy": newOwner.userId },
       });
     } else {
       // member thường -> rời nhóm
       await Conversation.findByIdAndUpdate(conversationId, {
         $pull: { participants: { userId } },
-      })
+      });
     }
 
     // tạo system message thông báo rời nhóm
@@ -371,12 +381,57 @@ export const leaveConversation = async (req, res) => {
       senderId: userId,
       type: "system",
       content: `${req.user.displayName} đã rời nhóm.`,
-    })
+    });
 
     return res.status(200).json({ message: "Đã rời nhóm" });
-
   } catch (error) {
     console.error("Lỗi khi leaveConversation: ", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const muteConversation = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { mutedUntil } = req.body; // null = vĩnh viễn, Date string = nó thời hạn
+    const userId = req.user._id;
+
+    const conversation = await Conversation.findById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation không tồn tại" });
+    }
+
+    const isMember = conversation.participants.some((p) => p.userId.toString() === userId.toString());
+
+    if (!isMember) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const alreadyMuted = conversation.mutedBy.some((m) => m.userId.toString() === userId.toString());
+
+    if (alreadyMuted) {
+      // unmute
+      await Conversation.findByIdAndUpdate(conversation._id, {
+        $pull: { mutedBy: { userId } },
+      });
+
+      return res.status(200).json({ message: "Đã bật thông báo", muted: false });
+    }
+
+    // mute
+    await Conversation.findByIdAndUpdate(conversation._id, {
+      $push: {
+        mutedBy: {
+          userId,
+          mutedUntil: mutedUntil ? new Date(mutedUntil) : null,
+        }
+      }
+    });
+
+    return res.status(200).json({ message: "Đã tắt thông báo", muted: true });
+  } catch (error) {
+    console.error("Lỗi khi muteConversation: ", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

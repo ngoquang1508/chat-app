@@ -27,6 +27,11 @@ export interface LastMessage {
   };
 }
 
+export interface MutedBy {
+  userId: string;
+  mutedUntil: string | null; // null = vĩnh viễn
+}
+
 export interface Conversation {
   _id: string;
   type: "direct" | "group";
@@ -36,6 +41,7 @@ export interface Conversation {
   seenBy: SeenUser[];
   lastMessage: LastMessage | null;
   unreadCounts: Record<string, number>; // key = userId, value = unread count
+  mutedBy: MutedBy[];
   createdAt: string;
   updatedAt: string;
 }

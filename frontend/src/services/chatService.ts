@@ -78,5 +78,10 @@ export const chatService = {
   async leaveConversation (convoId: string) {
     const res = await api.patch(`/conversations/${convoId}/leave`);
     return res.data.message;
+  },
+
+  async muteConversation (convoId: string, mutedUntil: Date | null = null) {
+    const res = await api.patch(`/conversations/${convoId}/mute`, { mutedUntil });
+    return res.data // { message, muted: bool }
   }
 };

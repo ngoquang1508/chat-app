@@ -242,7 +242,9 @@ export const useChatStore = create<ChatState>()(
             memberIds,
           );
 
-          const existing = get().conversations.find((c) => c._id === conversation._id);
+          const existing = get().conversations.find(
+            (c) => c._id === conversation._id,
+          );
 
           if (existing) {
             get().fetchConversationById(conversation._id);
@@ -302,6 +304,40 @@ export const useChatStore = create<ChatState>()(
         } catch (error) {
           console.error("Lỗi xảy ra khi gọi leaveConversation: ", error);
           toast.error("Có lỗi xảy ra. Vui lòng thử lại");
+        } finally {
+          set({ loading: false });
+        }
+      },
+      muteConversation: async (convoId) => {
+        try {
+          set({ loading: true });
+
+          const { muted } = await chatService.muteConversation(convoId);
+
+          set((state) => ({
+            conversations: state.conversations.map((c) => {
+              if (c._id !== convoId) return c;
+
+              const { user } = useAuthStore.getState();
+
+              if (!user) return c;
+
+              return {
+                ...c,
+                mutedBy: muted
+                  ? [
+                      ...(c.mutedBy ?? []),
+                      { userId: user._id, mutedUntil: null },
+                    ]
+                  : (c.mutedBy ?? []).filter((m) => m.userId !== user._id),
+              };
+            }),
+          }));
+
+          toast.success(muted ? "Đã tắt thông báo" : "Đã bật thông báo");
+        } catch (error) {
+          console.error("Lỗi khi muteConversation: ", error);
+          toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
         } finally {
           set({ loading: false });
         }

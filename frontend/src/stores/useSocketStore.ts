@@ -3,6 +3,7 @@ import { io, type Socket } from "socket.io-client";
 import { useAuthStore } from "./useAuthStore";
 import type { SocketState } from "@/types/store";
 import { useChatStore } from "./useChatStore";
+import { isMuted, showNotification } from "@/lib/notification";
 
 const baseURL = import.meta.env.VITE_SOCKET_URL;
 
@@ -52,6 +53,14 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         chatStore.fetchConversationById(message.conversationId);
       } else {
         chatStore.updateConversation(updatedConversation);
+      }
+
+      // notification
+      const fullConvo = chatStore.conversations.find((c) => c._id === message.conversationId);
+      if (fullConvo && !isMuted(fullConvo)) {
+        const senderName = conversation.lastMessage.sender.displayName ?? "Tin nhắn mới";
+        const body = message.content || "Đã gửi một ảnh";
+        showNotification(senderName, body);
       }
     });
 

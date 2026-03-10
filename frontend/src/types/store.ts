@@ -72,6 +72,7 @@ export interface ChatState {
   ) => Promise<void>;
   hideConversation: (convoId: string) => Promise<void>;
   leaveConversation: (convoId: string) => Promise<void>;
+  muteConversation: (convoId: string) => Promise<void>;
 }
 
 export interface SocketState {

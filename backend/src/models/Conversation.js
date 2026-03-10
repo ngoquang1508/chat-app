@@ -56,6 +56,23 @@ const lastMessageSchema = new mongoose.Schema(
   },
 );
 
+const mutedBySchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    mutedUntil: {
+      type: Date,
+      default: null, // null == muted vĩnh viễn
+    },
+  },
+  {
+    _id: false,
+  },
+);
+
 const conversationSchema = new mongoose.Schema(
   {
     type: {
@@ -95,6 +112,10 @@ const conversationSchema = new mongoose.Schema(
         default: [],
       },
     ],
+    mutedBy: {
+      type: [mutedBySchema],
+      default: [],
+    },
   },
   {
     timestamps: true,
