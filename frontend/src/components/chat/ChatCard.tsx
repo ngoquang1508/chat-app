@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
 import {
   Popover,
@@ -39,7 +50,7 @@ const ChatCard = ({
     await hideConversation(convoId);
   };
 
-  const isGropChat =
+  const isGroupChat =
     conversations.find((c) => c._id === convoId)?.type === "group";
   return (
     <Card
@@ -96,13 +107,31 @@ const ChatCard = ({
                 <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted">
                   <BellOff className="size-3.5" /> Tắt thông báo
                 </button>
-                {isGropChat ? (
-                  <button
-                    onClick={async () => handleLeaveConversation(convoId)}
-                    className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-destructive"
-                  >
-                    <LogOut className="size-3.5" /> Rời nhóm
-                  </button>
+                {isGroupChat ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-destructive">
+                        <LogOut className="size-3.5" /> Rời nhóm
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Rời khỏi nhóm?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Bạn sẽ không còn nhận được tin nhắn từ nhóm này nữa.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={() => handleLeaveConversation(convoId)}
+                        >
+                          Rời nhóm
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 ) : (
                   <button
                     onClick={async () => handleHideConversation(convoId)}
