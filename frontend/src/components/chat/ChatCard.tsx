@@ -5,7 +5,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatOnlineTime, cn } from "@/lib/utils";
-import { BellOff, MoreHorizontal, Pin, Trash2 } from "lucide-react";
+import { BellOff, EyeOff, MoreHorizontal, Pin } from "lucide-react";
 
 interface ChatCardProps {
   convoId: string;
@@ -83,8 +83,8 @@ const ChatCard = ({
                 <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted">
                   <BellOff className="size-3.5" /> Tắt thông báo
                 </button>
-                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-destructive">
-                  <Trash2 className="size-3.5" /> Xóa đoạn chat
+                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-muted-foreground">
+                  <EyeOff className="size-3.5" /> Ẩn đoạn chat
                 </button>
               </PopoverContent>
             </Popover>
