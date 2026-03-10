@@ -80,12 +80,12 @@ export const createConversation = async (req, res) => {
       joinedAt: p.joinedAt,
     }));
 
-    const formatted = {...conversation.toObject(), participants} 
+    const formatted = { ...conversation.toObject(), participants };
 
     if (type === "group") {
-        memberIds.forEach((userId) => {
-          io.to(userId).emit("new-group", formatted);
-        })
+      memberIds.forEach((userId) => {
+        io.to(userId).emit("new-group", formatted);
+      });
     }
 
     return res.status(201).json({ conversation: formatted });
@@ -101,6 +101,9 @@ export const getConversations = async (req, res) => {
 
     const conversations = await Conversation.find({
       "participants.userId": userId,
+      hiddenFor: {
+        $ne: userId,
+      },
     })
       .sort({ lastMessageAt: -1, updatedAt: -1 })
       .populate({
@@ -251,6 +254,36 @@ export const markAsSeen = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi xảy ra khi gọi markAsSeem: ", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const hideConversation = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const userId = req.user._id;
+
+    const conversation = await Conversation.findById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation không tồn tại" });
+    }
+
+    if (
+      !conversation.participants.some(
+        (p) => p.userId.toString() === userId.toString(),
+      )
+    ) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    await Conversation.findByIdAndUpdate(conversationId, {
+      $addToSet: { hiddenFor: userId },
+    });
+
+    return res.status(200).json({ message: "Conversation đã được ẩn." });
+  } catch (error) {
+    console.error("Lỗi khi hide conversation: ", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

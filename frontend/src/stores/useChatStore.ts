@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import { useAuthStore } from "./useAuthStore";
 import { useSocketStore } from "./useSocketStore";
 import type { Conversation } from "@/types/chat";
+import { toast } from "sonner";
 
 export const useChatStore = create<ChatState>()(
   persist(
@@ -66,8 +67,10 @@ export const useChatStore = create<ChatState>()(
 
           set((state) => {
             const prev = state.messages[convoId]?.items ?? [];
-            const merged =
-              prev.length > 0 ? [...processed, ...prev] : processed;
+            const merged = [...processed, ...prev].filter(
+              (msg, index, self) =>
+                index === self.findIndex((m) => m._id === msg._id),
+            );
 
             return {
               messages: {
@@ -232,6 +235,28 @@ export const useChatStore = create<ChatState>()(
             "Lỗi xảy ra khi gọi createConversation trong store",
             error,
           );
+        } finally {
+          set({ loading: false });
+        }
+      },
+      hideConversation: async (convoId) => {
+        try {
+          set({ loading: true });
+
+          await chatService.hideConversation(convoId);
+
+          set((state) => ({
+            conversations: state.conversations.filter((c) => c._id !== convoId),
+            activeConversationId:
+              state.activeConversationId === convoId
+                ? null
+                : state.activeConversationId,
+          }));
+
+          toast.info("Đã ẩn đoạn chat");
+        } catch (error) {
+          console.error("Lỗi xảy ra khi gọi hideConversation: ", error);
+          toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
         } finally {
           set({ loading: false });
         }

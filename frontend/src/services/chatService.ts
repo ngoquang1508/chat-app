@@ -64,4 +64,9 @@ export const chatService = {
     const res = await api.post("/conversations", { type, name, memberIds });
     return res.data.conversation;
   },
+
+  async hideConversation (convoId: string) {
+    const res = await api.patch(`/conversations/${convoId}/hide`);
+    return res.data.message;
+  }
 };

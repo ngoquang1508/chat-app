@@ -69,6 +69,7 @@ export interface ChatState {
     name: string,
     memberIds: string[]
   ) => Promise<void>;
+  hideConversation: (convoId: string) => Promise<void>;
 }
 
 export interface SocketState {

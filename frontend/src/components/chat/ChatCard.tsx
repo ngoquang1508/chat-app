@@ -5,7 +5,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatOnlineTime, cn } from "@/lib/utils";
-import { BellOff, EyeOff, MoreHorizontal, Pin } from "lucide-react";
+import { useChatStore } from "@/stores/useChatStore";
+import { BellOff, EyeOff, LogOut, MoreHorizontal, Pin } from "lucide-react";
 
 interface ChatCardProps {
   convoId: string;
@@ -28,6 +29,14 @@ const ChatCard = ({
   leftSection,
   subtitle,
 }: ChatCardProps) => {
+  const { hideConversation, conversations } = useChatStore();
+
+  const handleHideConversation = async (convoId: string) => {
+    await hideConversation(convoId);
+  };
+
+  const isGropChat =
+    conversations.find((c) => c._id === convoId)?.type === "group";
   return (
     <Card
       key={convoId}
@@ -83,9 +92,21 @@ const ChatCard = ({
                 <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted">
                   <BellOff className="size-3.5" /> Tắt thông báo
                 </button>
-                <button className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-muted-foreground">
-                  <EyeOff className="size-3.5" /> Ẩn đoạn chat
-                </button>
+                {isGropChat ? (
+                  <button
+                    onClick={async () => alert("Roi nhom")}
+                    className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-destructive"
+                  >
+                    <LogOut className="size-3.5" /> Rời nhóm
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => handleHideConversation(convoId)}
+                    className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted text-muted-foreground"
+                  >
+                    <EyeOff className="size-3.5" /> Ẩn đoạn chat
+                  </button>
+                )}
               </PopoverContent>
             </Popover>
           </div>
