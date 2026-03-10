@@ -27,6 +27,23 @@ export const useChatStore = create<ChatState>()(
           messageLoading: false,
         });
       },
+      fetchConversationById: async (convoId: string) => {
+        try {
+          const conversation = await chatService.fetchConversationById(convoId);
+          set((state) => {
+            const exists = state.conversations.some(
+              (c) => c._id === conversation._id,
+            );
+            return {
+              conversations: exists
+                ? state.conversations
+                : [conversation, ...state.conversations],
+            };
+          });
+        } catch (error) {
+          console.error("Lỗi khi fetchConversationById:", error);
+        }
+      },
       fetchConversations: async () => {
         try {
           set({ convoLoading: true });

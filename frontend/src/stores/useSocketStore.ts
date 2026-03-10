@@ -46,7 +46,13 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         chatStore.markAsSeen();
       }
 
-      chatStore.updateConversation(updatedConversation);
+      // Hiện lại conversation nếu đang bị ẩn
+      const exists = chatStore.conversations.some(c => c._id === message.conversationId)
+      if (!exists) {
+        chatStore.fetchConversationById(message.conversationId);
+      } else {
+        chatStore.updateConversation(updatedConversation);
+      }
     });
 
     // read message
@@ -66,6 +72,17 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     socket.on("new-group", (conversation) => {
       useChatStore.getState().addConvo(conversation);
       socket.emit("join-conversation", conversation._id);
+    });
+
+    // show conversation
+    socket.on("show-conversation", ({ conversationId }) => {
+      const chatStore = useChatStore.getState();
+      const exists = chatStore.conversations.some(
+        (c) => c._id === conversationId,
+      );
+      if (!exists) {
+        chatStore.fetchConversationById(conversationId);
+      }
     });
   },
   disconnectSocket: () => {

@@ -9,6 +9,11 @@ interface FetchMessageProps {
 const pageLimit = 10;
 
 export const chatService = {
+  async fetchConversationById (convoId: string) {
+    const res = await api.get(`/conversations/${convoId}`);
+    return res.data.conversation;
+  },
+
   async fetchConversations(): Promise<ConversationResponse> {
     const res = await api.get("/conversations");
     return res.data;

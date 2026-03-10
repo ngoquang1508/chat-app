@@ -143,6 +143,31 @@ export const getConversations = async (req, res) => {
   }
 };
 
+export const getConversationById = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const conversation = await Conversation.findById(conversationId)
+      .populate({ path: "participants.userId", select: "displayName avatarUrl" })
+      .populate({ path: "lastMessage.sender", select: "displayName avatarUrl" })
+      .populate({ path: "seenBy", select: "displayName avatarUrl" });
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Không tìm thấy" });
+    }
+
+    const participants = conversation.participants.map((p) => ({
+      _id: p.userId?._id,
+      displayName: p.userId?.displayName,
+      avatarUrl: p.userId?.avatarUrl ?? null,
+      joinedAt: p.joinedAt,
+    }));
+
+    return res.status(200).json({ conversation: { ...conversation.toObject(), participants } });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
 export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;

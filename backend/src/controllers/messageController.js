@@ -33,6 +33,14 @@ export const sendDirectMessage = async (req, res) => {
       });
     }
 
+    // Hiện lại conversation với người nhận nếu đã ẩn
+    await Conversation.findByIdAndUpdate(conversation._id, {
+      $pull: { hiddenFor: recipientId },
+    });
+
+    // emit cho người nhận để hiện lại conversation
+    io.to(recipientId.toString()).emit("show-conversation", { conversationId: conversation._id });
+
     const message = await Message.create({
       conversationId: conversation._id,
       senderId,

@@ -2,6 +2,7 @@ import express from "express";
 import {
   createConversation,
   getConversations,
+  getConversationById,
   getMessages,
   markAsSeen,
   hideConversation,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/", checkFriendship, createConversation);
 router.get("/", getConversations);
+router.get("/:conversationId", getConversationById);
 router.get("/:conversationId/messages", getMessages);
 router.patch("/:conversationId/seen", markAsSeen);
 router.patch("/:conversationId/hide", hideConversation);
