@@ -43,6 +43,13 @@ export const createConversation = async (req, res) => {
           lastMessageAt: new Date(),
         });
         await conversation.save();
+      } else {
+        // clear hiddenFor cho user hiện tại khi mở lại convo bị ẩn
+        await Conversation.findByIdAndUpdate(conversation._id, {
+          $pull: { hiddenFor: userId },
+        })
+
+        conversation = await Conversation.findById(conversation._id);
       }
     }
 

@@ -242,7 +242,13 @@ export const useChatStore = create<ChatState>()(
             memberIds,
           );
 
-          get().addConvo(conversation);
+          const existing = get().conversations.find((c) => c._id === conversation._id);
+
+          if (existing) {
+            get().fetchConversationById(conversation._id);
+          } else {
+            get().addConvo(conversation);
+          }
 
           useSocketStore
             .getState()
