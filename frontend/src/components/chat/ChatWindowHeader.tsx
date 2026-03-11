@@ -85,9 +85,8 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
         variant="destructiveOutline"
         size="icon"
         onClick={handleCloseChat}
-        className="size-7 rounded-lg text-muted-foreground/50 transition-all duration-150"
       >
-        <X className="size-3.5" />
+        <X className="size-4" />
       </Button>
     </header>
   );

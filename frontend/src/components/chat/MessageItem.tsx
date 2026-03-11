@@ -19,13 +19,13 @@ const MessageItem = ({
   selectedConvo,
   lastMessageStatus,
 }: MessageItemProps) => {
-  const prev = index + 1 < messages.length ? messages[index + 1] : undefined;
+  const prev = index > 0 ? messages[index - 1] : undefined;
 
   const isShowTime =
     index === 0 ||
     new Date(message.createdAt).getTime() -
       new Date(prev?.createdAt || 0).getTime() >
-      300000; // 5 phút
+      300000;
 
   const isGroupBreak = isShowTime || message.senderId !== prev?.senderId;
 
@@ -48,7 +48,7 @@ const MessageItem = ({
     <div className="flex flex-col" data-message-item>
       {/* time */}
       {isShowTime && (
-        <span className="flex justify-center text-xs text-muted-foreground px-1">
+        <span className="flex justify-center text-xs text-muted-foreground my-1">
           {formatMessageTime(new Date(message.createdAt))}
         </span>
       )}

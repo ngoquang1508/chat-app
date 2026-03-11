@@ -308,26 +308,28 @@ export const useChatStore = create<ChatState>()(
           set({ loading: false });
         }
       },
-      muteConversation: async (convoId) => {
+      muteConversation: async (convoId, mutedUntil = null) => {
         try {
           set({ loading: true });
-
-          const { muted } = await chatService.muteConversation(convoId);
+          const { muted } = await chatService.muteConversation(
+            convoId,
+            mutedUntil,
+          );
 
           set((state) => ({
             conversations: state.conversations.map((c) => {
               if (c._id !== convoId) return c;
-
               const { user } = useAuthStore.getState();
-
               if (!user) return c;
-
               return {
                 ...c,
                 mutedBy: muted
                   ? [
                       ...(c.mutedBy ?? []),
-                      { userId: user._id, mutedUntil: null },
+                      {
+                        userId: user._id,
+                        mutedUntil: mutedUntil?.toISOString() ?? null,
+                      },
                     ]
                   : (c.mutedBy ?? []).filter((m) => m.userId !== user._id),
               };
@@ -336,7 +338,7 @@ export const useChatStore = create<ChatState>()(
 
           toast.success(muted ? "Đã tắt thông báo" : "Đã bật thông báo");
         } catch (error) {
-          console.error("Lỗi khi muteConversation: ", error);
+          console.error("Lỗi khi muteConversation:", error);
           toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
         } finally {
           set({ loading: false });
