@@ -25,9 +25,11 @@ import {
   EyeOff,
   LogOut,
   MoreHorizontal,
-  Pin,
+  UserRound,
+  UsersRound,
 } from "lucide-react";
 import MuteDialog from "@/components/chat/MuteDialog";
+import ConversationInfoDialog from "@/components/chat/ConversationInfoDialog";
 
 interface ChatCardProps {
   convoId: string;
@@ -57,6 +59,7 @@ const ChatCard = ({
     muteConversation,
   } = useChatStore();
   const [muteDialogOpen, setMuteDialogOpen] = useState(false);
+  const [infoSheetOpen, setInfoSheetOpen] = useState(false);
   const convo = conversations.find((c) => c._id === convoId);
   const isGroupChat = convo?.type === "group";
   const muted = convo ? isMuted(convo) : false;
@@ -109,13 +112,25 @@ const ChatCard = ({
                   />
                 </PopoverTrigger>
                 <PopoverContent
-                  className="w-44 p-1"
+                  className="w-max min-w-44 p-1"
                   align="end"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button className="flex items-center gap-2 w-full px-2 py-2 text-sm rounded hover:bg-muted">
-                    <Pin className="size-3.5" /> Ghim
-                  </button>
+                  {isGroupChat ? (
+                    <button
+                      onClick={() => setInfoSheetOpen(true)}
+                      className="flex items-center gap-2 w-full px-2 py-2 text-sm rounded hover:bg-muted"
+                    >
+                      <UsersRound className="size-3.5" /> Xem thông tin nhóm
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setInfoSheetOpen(true)}
+                      className="flex items-center gap-2 w-full px-2 py-2 text-sm rounded hover:bg-muted"
+                    >
+                      <UserRound className="size-3.5" /> Xem thông tin
+                    </button>
+                  )}
 
                   <button
                     onClick={() => {
@@ -187,6 +202,15 @@ const ChatCard = ({
           setMuteDialogOpen(false);
         }}
       />
+
+      {/*  */}
+      {convo && (
+        <ConversationInfoDialog
+          open={infoSheetOpen}
+          onOpenChange={setInfoSheetOpen}
+          conversation={convo}
+        />
+      )}
     </>
   );
 };
