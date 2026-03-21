@@ -29,7 +29,8 @@ const MessageItem = ({
 }: MessageItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { hideMessage, recallMessage } = useChatStore();
+  const { hideMessage, recallMessage, pinnedMessages, unpinMessage } =
+    useChatStore();
 
   const isVisible = isHovered || isDropdownOpen;
 
@@ -60,6 +61,7 @@ const MessageItem = ({
     isVisible,
     isOwn: message.isOwn ?? false,
     isRecalled: message.isRecalled ?? false,
+    isPinned: pinnedMessages.some((m) => m._id === message._id),
     onReply: () => onReply?.(message),
     onCopy: handleCopy,
     onPin: () => onPin?.(message),
@@ -67,6 +69,7 @@ const MessageItem = ({
     onRecallForMe: () => hideMessage(message._id, message.conversationId),
     onRecallForAll: () => recallMessage(message._id),
     onDropdownOpenChange: setIsDropdownOpen,
+    onUnpin: () => unpinMessage(message._id),
   };
 
   // Tin nhắn hệ thống

@@ -357,10 +357,16 @@ export const useChatStore = create<ChatState>()(
       },
       pinMessage: async (message: Message) => {
         try {
+          // Kiểm tra đã ghim chưa
+          const alreadyPinned = get().pinnedMessages.some(
+            (m) => m._id === message._id,
+          );
+          if (alreadyPinned) {
+            toast.info("Tin nhắn này đã được ghim rồi.");
+            return;
+          }
+
           await chatService.pinMessage(message._id);
-          set((state) => ({
-            pinnedMessages: [...state.pinnedMessages, message],
-          }));
           toast.success("Ghim tin nhắn thành công!");
         } catch (error) {
           console.error("Lỗi khi ghim tin nhắn", error);
@@ -370,11 +376,6 @@ export const useChatStore = create<ChatState>()(
       unpinMessage: async (messageId: string) => {
         try {
           await chatService.unpinMessage(messageId);
-          set((state) => ({
-            pinnedMessages: state.pinnedMessages.filter(
-              (m) => m._id !== messageId,
-            ),
-          }));
           toast.success("Bỏ ghim tin nhắn thành công!");
         } catch (error) {
           console.error("Lỗi khi bỏ ghim tin nhắn", error);

@@ -141,8 +141,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     );
 
     socket.on("message:pinned", (message) => {
+      const { activeConversationId } = useChatStore.getState();
+      if (message.conversationId !== activeConversationId) return;
+
       useChatStore.setState((state) => {
-        // Tránh thêm trùng
         const exists = state.pinnedMessages.some((m) => m._id === message._id);
         if (exists) return state;
         return {

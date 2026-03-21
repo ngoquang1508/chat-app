@@ -13,7 +13,7 @@ import {
   DialogDescription,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Reply, MoreHorizontal, Copy, Pin, Undo2, EyeOff } from "lucide-react";
+import { Reply, MoreHorizontal, Copy, Pin, PinOff, Undo2, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -21,12 +21,14 @@ interface ActionButtonsProps {
   isVisible: boolean;
   isOwn: boolean;
   isRecalled: boolean;
+  isPinned: boolean;
   onReply: () => void;
   onCopy: () => void;
   onRecallForMe: () => void;
   onRecallForAll: () => void;
   onHide: () => void;
   onPin: () => void;
+  onUnpin: () => void;
   onDropdownOpenChange: (open: boolean) => void;
 }
 
@@ -34,12 +36,14 @@ const ActionButtons = ({
   isVisible,
   isOwn,
   isRecalled,
+  isPinned,
   onReply,
   onCopy,
   onRecallForMe,
   onRecallForAll,
   onHide,
   onPin,
+  onUnpin,
   onDropdownOpenChange,
 }: ActionButtonsProps) => {
   const [recallOpen, setRecallOpen] = useState(false);
@@ -92,21 +96,6 @@ const ActionButtons = ({
           </Tooltip>
         )}
 
-        {/* Ghim — ẩn nếu đã thu hồi hoặc tin của mình */}
-        {!isOwn && !isRecalled && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={onPin}
-                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Pin className="w-3.5 h-3.5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Ghim</TooltipContent>
-          </Tooltip>
-        )}
-
         {/* More — luôn hiện */}
         <DropdownMenu onOpenChange={onDropdownOpenChange}>
           <DropdownMenuTrigger asChild>
@@ -115,11 +104,20 @@ const ActionButtons = ({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align={isOwn ? "end" : "start"} className="w-44">
-            {/* Ghim — ẩn nếu đã thu hồi */}
+            {/* Ghim / Bỏ ghim — ẩn nếu đã thu hồi */}
             {!isRecalled && (
-              <DropdownMenuItem onClick={onPin}>
-                <Pin className="w-4 h-4 mr-2" />
-                Ghim tin nhắn
+              <DropdownMenuItem onClick={isPinned ? onUnpin : onPin}>
+                {isPinned ? (
+                  <>
+                    <PinOff className="w-4 h-4 mr-2" />
+                    Bỏ ghim
+                  </>
+                ) : (
+                  <>
+                    <Pin className="w-4 h-4 mr-2" />
+                    Ghim tin nhắn
+                  </>
+                )}
               </DropdownMenuItem>
             )}
 
