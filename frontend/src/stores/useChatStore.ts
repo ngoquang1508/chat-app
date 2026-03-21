@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useAuthStore } from "./useAuthStore";
 import { useSocketStore } from "./useSocketStore";
-import type { Conversation } from "@/types/chat";
+import type { Conversation, Message } from "@/types/chat";
 import { toast } from "sonner";
 
 export const useChatStore = create<ChatState>()(
@@ -12,9 +12,11 @@ export const useChatStore = create<ChatState>()(
     (set, get) => ({
       conversations: [],
       messages: {},
+
       activeConversationId: null,
       convoLoading: false, // convo loading
       messageLoading: false,
+      pinnedMessages: [],
       loading: false,
 
       setActiveConversation: (id) => set({ activeConversationId: id }),
@@ -342,6 +344,41 @@ export const useChatStore = create<ChatState>()(
           toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
         } finally {
           set({ loading: false });
+        }
+      },
+      fetchPinnedMessages: async (convoId: string) => {
+        try {
+          const messages = await chatService.getPinnedMessages(convoId);
+          set({ pinnedMessages: messages });
+        } catch (error) {
+          console.error("Lỗi khi fetch tin nhắn ghim", error);
+          set({ pinnedMessages: [] });
+        }
+      },
+      pinMessage: async (message: Message) => {
+        try {
+          await chatService.pinMessage(message._id);
+          set((state) => ({
+            pinnedMessages: [...state.pinnedMessages, message],
+          }));
+          toast.success("Ghim tin nhắn thành công!");
+        } catch (error) {
+          console.error("Lỗi khi ghim tin nhắn", error);
+          toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+        }
+      },
+      unpinMessage: async (messageId: string) => {
+        try {
+          await chatService.unpinMessage(messageId);
+          set((state) => ({
+            pinnedMessages: state.pinnedMessages.filter(
+              (m) => m._id !== messageId,
+            ),
+          }));
+          toast.success("Bỏ ghim tin nhắn thành công!");
+        } catch (error) {
+          console.error("Lỗi khi bỏ ghim tin nhắn", error);
+          toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
         }
       },
     }),

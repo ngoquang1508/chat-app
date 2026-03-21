@@ -9,7 +9,7 @@ interface FetchMessageProps {
 const pageLimit = 10;
 
 export const chatService = {
-  async fetchConversationById (convoId: string) {
+  async fetchConversationById(convoId: string) {
     const res = await api.get(`/conversations/${convoId}`);
     return res.data.conversation;
   },
@@ -21,7 +21,7 @@ export const chatService = {
 
   async fetchMessages(id: string, cursor?: string): Promise<FetchMessageProps> {
     const res = await api.get(
-      `/conversations/${id}/messages?limit=${pageLimit}&cursor=${cursor}`
+      `/conversations/${id}/messages?limit=${pageLimit}&cursor=${cursor}`,
     );
 
     return { messages: res.data.messages, cursor: res.data.nextCursor };
@@ -31,7 +31,7 @@ export const chatService = {
     recipientId: string,
     content: string = "",
     imgUrl?: string,
-    conversationId?: string
+    conversationId?: string,
   ) {
     const res = await api.post("/messages/direct", {
       recipientId,
@@ -46,7 +46,7 @@ export const chatService = {
   async sendGroupMessage(
     conversationId: string,
     content: string = "",
-    imgUrl?: string
+    imgUrl?: string,
   ) {
     const res = await api.post("/messages/group", {
       conversationId,
@@ -64,24 +64,41 @@ export const chatService = {
   async createConversation(
     type: "direct" | "group",
     name: string,
-    memberIds: string[]
+    memberIds: string[],
   ) {
     const res = await api.post("/conversations", { type, name, memberIds });
     return res.data.conversation;
   },
 
-  async hideConversation (convoId: string) {
+  async hideConversation(convoId: string) {
     const res = await api.patch(`/conversations/${convoId}/hide`);
     return res.data.message;
   },
 
-  async leaveConversation (convoId: string) {
+  async leaveConversation(convoId: string) {
     const res = await api.patch(`/conversations/${convoId}/leave`);
     return res.data.message;
   },
 
-  async muteConversation (convoId: string, mutedUntil: Date | null = null) {
-    const res = await api.patch(`/conversations/${convoId}/mute`, { mutedUntil });
-    return res.data // { message, muted: bool }
-  }
+  async muteConversation(convoId: string, mutedUntil: Date | null = null) {
+    const res = await api.patch(`/conversations/${convoId}/mute`, {
+      mutedUntil,
+    });
+    return res.data; // { message, muted: bool }
+  },
+
+  async getPinnedMessages(convoId: string): Promise<Message[]> {
+    const res = await api.get(`/conversations/${convoId}/pinned-messages`);
+    return Array.isArray(res.data) ? res.data : [];
+  },
+
+  async pinMessage(messageId: string) {
+    const res = await api.put(`/messages/${messageId}/pin`);
+    return res.data;
+  },
+
+  async unpinMessage(messageId: string) {
+    const res = await api.put(`/messages/${messageId}/unpin`);
+    return res.data;
+  },
 };

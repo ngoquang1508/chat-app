@@ -43,6 +43,7 @@ export interface ChatState {
   convoLoading: boolean;
   messageLoading: boolean;
   loading: boolean;
+  pinnedMessages: Message[];
   reset: () => void;
 
   setActiveConversation: (id: string | null) => void;
@@ -73,6 +74,9 @@ export interface ChatState {
   hideConversation: (convoId: string) => Promise<void>;
   leaveConversation: (convoId: string) => Promise<void>;
   muteConversation: (convoId: string, mutedUntil?: Date | null) => Promise<void>;
+  fetchPinnedMessages: (convoId: string) => Promise<void>; 
+  pinMessage: (message: Message) => Promise<void>;         
+  unpinMessage: (messageId: string) => Promise<void>;
 }
 
 export interface SocketState {

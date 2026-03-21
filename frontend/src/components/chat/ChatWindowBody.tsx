@@ -4,8 +4,13 @@ import MessageItem from "./MessageItem";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
+import type { Message } from "@/types/chat";
 
-const ChatWindowBody = () => {
+interface ChatWindowBodyProps {
+  onPin?: (message: Message) => void;
+}
+
+const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
   const {
     activeConversationId,
     conversations,
@@ -15,11 +20,15 @@ const ChatWindowBody = () => {
   } = useChatStore();
   const { user } = useAuthStore();
 
-  const [lastMessageStatus, setLastMessageStatus] = useState<"delivered" | "seen">("delivered");
+  const [lastMessageStatus, setLastMessageStatus] = useState<
+    "delivered" | "seen"
+  >("delivered");
 
   const messages = allMessages[activeConversationId!]?.items ?? [];
   const hasMore = allMessages[activeConversationId!]?.hasMore ?? false;
-  const selectedConvo = conversations.find((c) => c._id === activeConversationId);
+  const selectedConvo = conversations.find(
+    (c) => c._id === activeConversationId,
+  );
   const unreadCount = selectedConvo?.unreadCounts?.[user?._id ?? ""] ?? 0;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -65,7 +74,9 @@ const ChatWindowBody = () => {
         if (unreadCount > 0 && unreadCount < newCount) {
           // Trường hợp 3: có tin chưa đọc → scroll đến tin chưa đọc đầu tiên
           const unreadIndex = newCount - unreadCount;
-          const messageElements = container.querySelectorAll("[data-message-item]");
+          const messageElements = container.querySelectorAll(
+            "[data-message-item]",
+          );
           const targetEl = messageElements[unreadIndex] as HTMLElement;
 
           if (targetEl) {
@@ -98,7 +109,8 @@ const ChatWindowBody = () => {
         // Load thêm tin cũ → giữ vị trí scroll
         const prevScrollHeight = prevScrollHeightRef.current;
         const newScrollHeight = container.scrollHeight;
-        container.scrollTop = newScrollHeight - prevScrollHeight + container.scrollTop;
+        container.scrollTop =
+          newScrollHeight - prevScrollHeight + container.scrollTop;
       }
     }
 
@@ -165,6 +177,7 @@ const ChatWindowBody = () => {
             messages={messages}
             selectedConvo={selectedConvo}
             lastMessageStatus={lastMessageStatus}
+            onPin={onPin}
             data-message-item
           />
         ))}

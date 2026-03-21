@@ -1,8 +1,12 @@
+// components/chat/MessageItem.tsx
 import { cn, formatMessageTime } from "@/lib/utils";
 import type { Conversation, Message, Participant } from "@/types/chat";
+import { useState } from "react";
+import { TooltipProvider } from "../ui/tooltip";
 import UserAvatar from "./UserAvatar";
-import { Card } from "../ui/card";
-import { Badge } from "../ui/badge";
+import ActionButtons from "./ActionButtons";
+import MessageBubble from "./MessageBubble";
+import { toast } from "sonner";
 
 interface MessageItemProps {
   message: Message;
@@ -10,6 +14,10 @@ interface MessageItemProps {
   messages: Message[];
   selectedConvo: Conversation;
   lastMessageStatus: "delivered" | "seen";
+  onReply?: (message: Message) => void;
+  onRecallForMe?: (message: Message) => void;
+  onRecallForAll?: (message: Message) => void;
+  onPin?: (message: Message) => void;
 }
 
 const MessageItem = ({
@@ -18,7 +26,16 @@ const MessageItem = ({
   messages,
   selectedConvo,
   lastMessageStatus,
+  onReply,
+  onRecallForMe,
+  onRecallForAll,
+  onPin,
 }: MessageItemProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const isVisible = isHovered || isDropdownOpen;
+
   const prev = index > 0 ? messages[index - 1] : undefined;
 
   const isShowTime =
@@ -33,7 +50,27 @@ const MessageItem = ({
     (p: Participant) => p._id.toString() === message.senderId.toString(),
   );
 
-  // message thông báo nếu có user rời nhóm
+  const handleCopy = () => {
+    if (message.content) {
+      navigator.clipboard.writeText(message.content);
+      toast.success("Sao chép thành công!");
+    } else {
+      toast.error("Có lỗi xảy ra khi sao chép. Hãy thử lại!");
+    }
+  };
+
+  const actionProps = {
+    isVisible,
+    isOwn: message.isOwn ?? false,
+    onReply: () => onReply?.(message),
+    onCopy: handleCopy,
+    onRecallForMe: () => onRecallForMe?.(message),
+    onRecallForAll: () => onRecallForAll?.(message),
+    onPin: () => onPin?.(message),
+    onDropdownOpenChange: setIsDropdownOpen,
+  };
+
+  // Tin nhắn hệ thống
   if (message.type === "system") {
     return (
       <div className="flex justify-center my-1">
@@ -45,68 +82,58 @@ const MessageItem = ({
   }
 
   return (
-    <div className="flex flex-col" data-message-item>
-      {/* time */}
+    <div className="flex flex-col" data-message-item data-message-id={message._id}>
       {isShowTime && (
-        <span className="flex justify-center text-xs text-muted-foreground my-1">
+        <span className="flex justify-center text-xs text-muted-foreground mt-2.5 mb-1">
           {formatMessageTime(new Date(message.createdAt))}
         </span>
       )}
 
       <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          "flex items-center gap-2 message-bounce mt-1",
+          "flex items-center gap-1 message-bounce mt-1 px-2 rounded-lg",
           message.isOwn ? "justify-end" : "justify-start",
         )}
       >
-        {/* avatar */}
         {!message.isOwn && (
-          <div className="w-8">
-            {isGroupBreak && (
-              <UserAvatar
-                type="chat"
-                name={participant?.displayName ?? "halo"}
-                avatarUrl={participant?.avatarUrl ?? undefined}
-              />
-            )}
-          </div>
+          <>
+            <div className="w-8 shrink-0 self-end">
+              {isGroupBreak && (
+                <UserAvatar
+                  type="chat"
+                  name={participant?.displayName ?? "Unknown"}
+                  avatarUrl={participant?.avatarUrl ?? undefined}
+                />
+              )}
+            </div>
+
+            <MessageBubble
+              message={message}
+              lastMessageId={selectedConvo.lastMessage?._id}
+              lastMessageStatus={lastMessageStatus}
+            />
+
+            <TooltipProvider delayDuration={100}>
+              <ActionButtons {...actionProps} />
+            </TooltipProvider>
+          </>
         )}
 
-        {/* tin nhắn */}
-        <div
-          className={cn(
-            "max-w-xs lg:max-w-md space-y-1 flex flex-col",
-            message.isOwn ? "items-end" : "items-start",
-          )}
-        >
-          <Card
-            className={cn(
-              "p-3",
-              message.isOwn
-                ? "chat-bubble-sent border-0"
-                : "chat-bubble-received",
-            )}
-          >
-            <p className="text-sm leading-relaxed wrap-break-word">
-              {message.content}
-            </p>
-          </Card>
+        {message.isOwn && (
+          <>
+            <TooltipProvider delayDuration={100}>
+              <ActionButtons {...actionProps} />
+            </TooltipProvider>
 
-          {/* seen/ delivered */}
-          {message.isOwn && message._id === selectedConvo.lastMessage?._id && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-xs px-1.5 py-0.5 h-4 border-0",
-                lastMessageStatus === "seen"
-                  ? "bg-primary/20 text-primary"
-                  : "bg-muted text-muted-foreground",
-              )}
-            >
-              {lastMessageStatus === "seen" ? "Đã xem" : "Đã gửi"}
-            </Badge>
-          )}
-        </div>
+            <MessageBubble
+              message={message}
+              lastMessageId={selectedConvo.lastMessage?._id}
+              lastMessageStatus={lastMessageStatus}
+            />
+          </>
+        )}
       </div>
     </div>
   );

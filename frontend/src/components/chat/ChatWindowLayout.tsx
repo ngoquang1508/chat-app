@@ -11,15 +11,24 @@ const ChatWindowLayout = () => {
     activeConversationId,
     conversations,
     markAsSeen,
+    pinnedMessages,
+    fetchPinnedMessages,
+    pinMessage,
+    unpinMessage,
   } = useChatStore();
 
   const selectedConvo =
     conversations.find((c) => c._id === activeConversationId) ?? null;
 
+  // Fetch tin nhắn ghim khi đổi conversation
   useEffect(() => {
-    if (!selectedConvo) {
-      return;
-    }
+    if (!selectedConvo) return;
+    fetchPinnedMessages(selectedConvo._id);
+  }, [selectedConvo?._id]);
+
+  // Mark seen
+  useEffect(() => {
+    if (!selectedConvo) return;
 
     const markSeen = async () => {
       try {
@@ -39,11 +48,19 @@ const ChatWindowLayout = () => {
   return (
     <SidebarInset className="flex flex-col h-full flex-1 overflow-hidden rounded-sm shadow-md">
       {/* Header */}
-      <ChatWindowHeader chat={selectedConvo} />
+      <ChatWindowHeader
+        pinnedMessages={pinnedMessages}
+        onUnpin={unpinMessage}
+        onScrollToMessage={(id) => {
+          document
+            .querySelector(`[data-message-id="${id}"]`)
+            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }}
+      />
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto bg-primary-foreground">
-        <ChatWindowBody />
+        <ChatWindowBody onPin={pinMessage} />
       </div>
 
       {/* Footer */}

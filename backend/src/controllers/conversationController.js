@@ -402,13 +402,17 @@ export const muteConversation = async (req, res) => {
       return res.status(404).json({ message: "Conversation không tồn tại" });
     }
 
-    const isMember = conversation.participants.some((p) => p.userId.toString() === userId.toString());
+    const isMember = conversation.participants.some(
+      (p) => p.userId.toString() === userId.toString(),
+    );
 
     if (!isMember) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    const alreadyMuted = conversation.mutedBy.some((m) => m.userId.toString() === userId.toString());
+    const alreadyMuted = conversation.mutedBy.some(
+      (m) => m.userId.toString() === userId.toString(),
+    );
 
     if (alreadyMuted) {
       // unmute
@@ -416,7 +420,9 @@ export const muteConversation = async (req, res) => {
         $pull: { mutedBy: { userId } },
       });
 
-      return res.status(200).json({ message: "Đã bật thông báo", muted: false });
+      return res
+        .status(200)
+        .json({ message: "Đã bật thông báo", muted: false });
     }
 
     // mute
@@ -425,13 +431,29 @@ export const muteConversation = async (req, res) => {
         mutedBy: {
           userId,
           mutedUntil: mutedUntil ? new Date(mutedUntil) : null,
-        }
-      }
+        },
+      },
     });
 
     return res.status(200).json({ message: "Đã tắt thông báo", muted: true });
   } catch (error) {
     console.error("Lỗi khi muteConversation: ", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const getPinnedMessages = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const messages = await Message.find({
+      conversationId: id,
+      isPinned: true,
+    }).sort({ pinnedAt: -1 });
+
+    return res.json(messages);
+  } catch (error) {
+    console.error("Lỗi khi lấy tin nhắn ghim", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

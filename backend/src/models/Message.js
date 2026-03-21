@@ -11,19 +11,32 @@ const messageSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: ["text", "system"],
-      default: "text"
+      default: "text",
     },
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    content: {
+    content: { 
       type: String,
       trim: true,
     },
     imgUrl: {
       type: String,
+    },
+    isPinned: {
+      type: Boolean,
+      default: false,
+    },
+    pinnedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    pinnedAt: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -32,7 +45,7 @@ const messageSchema = new mongoose.Schema(
 );
 
 messageSchema.index({ conversationId: 1, createdAt: -1 });
+messageSchema.index({ conversationId: 1, isPinned: 1 }); // query tin ghim nhanh hơn
 
 const Message = mongoose.model("Message", messageSchema);
-
 export default Message;

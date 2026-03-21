@@ -116,6 +116,12 @@ const conversationSchema = new mongoose.Schema(
       type: [mutedBySchema],
       default: [],
     },
+    pinnedMessages: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Message",
+      },
+    ],
   },
   {
     timestamps: true,

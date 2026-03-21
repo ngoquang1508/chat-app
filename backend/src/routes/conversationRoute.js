@@ -7,7 +7,8 @@ import {
   markAsSeen,
   hideConversation,
   leaveConversation,
-  muteConversation
+  muteConversation,
+  getPinnedMessages,
 } from "../controllers/conversationController.js";
 import { checkFriendship } from "../middlewares/friendMiddleware.js";
 
@@ -21,5 +22,6 @@ router.patch("/:conversationId/seen", markAsSeen);
 router.patch("/:conversationId/hide", hideConversation);
 router.patch("/:conversationId/leave", leaveConversation);
 router.patch("/:conversationId/mute", muteConversation);
+router.get("/:id/pinned-messages", getPinnedMessages)
 
 export default router;

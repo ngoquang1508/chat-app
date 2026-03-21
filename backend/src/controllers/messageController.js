@@ -39,7 +39,9 @@ export const sendDirectMessage = async (req, res) => {
     });
 
     // emit cho người nhận để hiện lại conversation
-    io.to(recipientId.toString()).emit("show-conversation", { conversationId: conversation._id });
+    io.to(recipientId.toString()).emit("show-conversation", {
+      conversationId: conversation._id,
+    });
 
     const message = await Message.create({
       conversationId: conversation._id,
@@ -84,6 +86,61 @@ export const sendGroupMessage = async (req, res) => {
     return res.status(201).json({ message });
   } catch (error) {
     console.error("Lỗi xảy ra khi gửi tin nhắn nhóm", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const pinMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const message = await Message.findById(id);
+    if (!message) {
+      return res.status(404).json({ message: "Không tìm thấy tin nhắn" });
+    }
+
+    message.isPinned = true;
+    message.pinnedBy = userId;
+    message.pinnedAt = new Date();
+    await message.save();
+
+    await Conversation.findByIdAndUpdate(message.conversationId, {
+      $addToSet: { pinnedMessages: message._id },
+    });
+
+    io.to(message.conversationId.toString()).emit("message:pinned", message);
+
+    return res.json(message);
+  } catch (error) {
+    console.error("Lỗi khi ghim tin nhắn", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const unpinMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const message = await Message.findById(id);
+    if (!message) {
+      return res.status(404).json({ message: "Không tìm thấy tin nhắn" });
+    }
+
+    message.isPinned = false;
+    message.pinnedBy = null;
+    message.pinnedAt = null;
+    await message.save();
+
+    await Conversation.findByIdAndUpdate(message.conversationId, {
+      $pull: { pinnedMessages: message._id },
+    });
+
+    io.to(message.conversationId.toString()).emit("message:unpinned", message);
+
+    return res.json(message);
+  } catch (error) {
+    console.error("Lỗi khi bỏ ghim tin nhắn", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
