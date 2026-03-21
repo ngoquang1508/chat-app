@@ -42,7 +42,7 @@ const MessageBubble = ({
                     : "chat-bubble-received",
                 )}
               >
-                <p className="text-sm italic text-muted-foreground">
+                <p className="text-sm italic text-foreground">
                   {message.isOwn
                     ? "Bạn đã thu hồi tin nhắn"
                     : "Tin nhắn đã bị thu hồi"}
