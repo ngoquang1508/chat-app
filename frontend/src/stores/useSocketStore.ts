@@ -48,7 +48,9 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       }
 
       // Hiện lại conversation nếu đang bị ẩn
-      const exists = chatStore.conversations.some(c => c._id === message.conversationId)
+      const exists = chatStore.conversations.some(
+        (c) => c._id === message.conversationId,
+      );
       if (!exists) {
         chatStore.fetchConversationById(message.conversationId);
       } else {
@@ -56,9 +58,12 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       }
 
       // notification
-      const fullConvo = chatStore.conversations.find((c) => c._id === message.conversationId);
+      const fullConvo = chatStore.conversations.find(
+        (c) => c._id === message.conversationId,
+      );
       if (fullConvo && !isMuted(fullConvo)) {
-        const senderName = conversation.lastMessage.sender.displayName ?? "Tin nhắn mới";
+        const senderName =
+          conversation.lastMessage.sender.displayName ?? "Tin nhắn mới";
         const body = message.content || "Đã gửi một ảnh";
         showNotification(senderName, body);
       }
@@ -92,6 +97,64 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       if (!exists) {
         chatStore.fetchConversationById(conversationId);
       }
+    });
+
+    socket.on(
+      "message:recalled",
+      ({ _id, conversationId }: { _id: string; conversationId: string }) => {
+        const state = useChatStore.getState();
+        const messages = state.messages;
+
+        for (const convoId in messages) {
+          const exists = messages[convoId].items.some((m) => m._id === _id);
+          if (exists) {
+            useChatStore.setState((s) => ({
+              messages: {
+                ...s.messages,
+                [convoId]: {
+                  ...s.messages[convoId],
+                  items: s.messages[convoId].items.map((m) =>
+                    m._id === _id
+                      ? { ...m, isRecalled: true, content: null }
+                      : m,
+                  ),
+                },
+              },
+              // Cập nhật lastMessage nếu là tin cuối
+              conversations: s.conversations.map((c) => {
+                if (c._id !== conversationId) return c;
+                if (c.lastMessage?._id !== _id) return c;
+                return {
+                  ...c,
+                  lastMessage: {
+                    ...c.lastMessage,
+                    content: null,
+                    isRecalled: true,
+                  },
+                };
+              }),
+            }));
+            break;
+          }
+        }
+      },
+    );
+
+    socket.on("message:pinned", (message) => {
+      useChatStore.setState((state) => {
+        // Tránh thêm trùng
+        const exists = state.pinnedMessages.some((m) => m._id === message._id);
+        if (exists) return state;
+        return {
+          pinnedMessages: [...state.pinnedMessages, message],
+        };
+      });
+    });
+
+    socket.on("message:unpinned", ({ _id }: { _id: string }) => {
+      useChatStore.setState((state) => ({
+        pinnedMessages: state.pinnedMessages.filter((m) => m._id !== _id),
+      }));
     });
   },
   disconnectSocket: () => {

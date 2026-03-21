@@ -144,3 +144,91 @@ export const unpinMessage = async (req, res) => {
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
+
+// Ẩn phía mình (cả tin của mình lẫn tin người khác)
+export const hideMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const message = await Message.findByIdAndUpdate(
+      id,
+      { $addToSet: { deletedFor: userId } },
+      { new: true },
+    );
+
+    if (!message) {
+      return res.status(404).json({ message: "Không tìm thấy tin nhắn" });
+    }
+
+    return res.json(message);
+  } catch (error) {
+    console.error("Lỗi khi ẩn tin nhắn", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Thu hồi với tất cả (chỉ tin của mình)
+export const recallMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const message = await Message.findById(id);
+    if (!message) {
+      return res.status(404).json({ message: "Không tìm thấy tin nhắn" });
+    }
+
+    if (message.senderId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Không có quyền thu hồi" });
+    }
+
+    // Lưu trạng thái isPinned trước khi thay đổi
+    const wasPinned = message.isPinned;
+
+    message.isRecalled = true;
+    message.recalledAt = new Date();
+    message.content = null;
+    message.isPinned = false;
+    message.pinnedBy = null;
+    message.pinnedAt = null;
+
+    await message.save();
+
+    // Cập nhật lastMessage trong conversation
+    await Conversation.findOneAndUpdate(
+      {
+        _id: message.conversationId,
+        "lastMessage._id": message._id,
+      },
+      {
+        $set: {
+          "lastMessage.content": null,
+          "lastMessage.isRecalled": true,
+        },
+      },
+    );
+
+    // Nếu đang ghim thì bỏ ghim
+    if (wasPinned) {
+      await Conversation.findByIdAndUpdate(message.conversationId, {
+        $pull: { pinnedMessages: message._id },
+      });
+
+      io.to(message.conversationId.toString()).emit("message:unpinned", {
+        _id: message._id,
+        conversationId: message.conversationId,
+      });
+    }
+
+    io.to(message.conversationId.toString()).emit("message:recalled", {
+      _id: message._id,
+      conversationId: message.conversationId,
+    });
+
+    return res.json(message);
+  } catch (error) {
+    console.error("Lỗi khi thu hồi tin nhắn", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};

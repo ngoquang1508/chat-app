@@ -18,7 +18,7 @@ const messageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    content: { 
+    content: {
       type: String,
       trim: true,
     },
@@ -38,10 +38,25 @@ const messageSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    deletedFor: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
+    isRecalled: {
+      type: Boolean,
+      default: false,
+    },
+    recalledAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 messageSchema.index({ conversationId: 1, createdAt: -1 });

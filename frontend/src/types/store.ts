@@ -77,6 +77,8 @@ export interface ChatState {
   fetchPinnedMessages: (convoId: string) => Promise<void>; 
   pinMessage: (message: Message) => Promise<void>;         
   unpinMessage: (messageId: string) => Promise<void>;
+  hideMessage: (messageId: string, conversationId: string) => Promise<void>;
+  recallMessage: (messageId: string) => Promise<void>;
 }
 
 export interface SocketState {

@@ -184,6 +184,7 @@ export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
     const { limit = 50, cursor } = req.query;
+    const userId = req.user._id;
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
       return res.status(400).json({
@@ -191,13 +192,17 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    const query = { conversationId };
+    const query = {
+      conversationId,
+      deletedFor: { $ne: userId }, // lọc tin bị ẩn
+    };
 
     if (cursor) {
       query.createdAt = { $lt: new Date(cursor) };
     }
 
     let messages = await Message.find(query)
+      .select("+isRecalled +recalledAt +deletedFor")
       .sort({ createdAt: -1 })
       .limit(Number(limit) + 1);
 
@@ -208,7 +213,6 @@ export const getMessages = async (req, res) => {
       messages.pop();
     }
 
-    // đảo ngược thứ tự tin nhắn tin nhắn
     messages.reverse();
 
     return res.status(200).json({

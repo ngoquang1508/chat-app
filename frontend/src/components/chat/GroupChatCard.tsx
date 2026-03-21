@@ -28,8 +28,13 @@ const GroupChatCard = ({ convo }: { convo: Conversation }) => {
 
   const senderId = convo.lastMessage?.sender._id;
   const lastMessage = convo.lastMessage?.content ?? "";
-  const displayLastMessage =
-    senderId === user._id
+  const isRecalled = convo.lastMessage?.isRecalled ?? false; 
+
+  const displayLastMessage = isRecalled
+    ? senderId === user._id
+      ? "Bạn đã thu hồi tin nhắn"
+      : `${convo.lastMessage?.sender?.displayName || "Ẩn danh"} đã thu hồi tin nhắn`
+    : senderId === user._id
       ? `Bạn: ${lastMessage}`
       : `${convo.lastMessage?.sender?.displayName || "Ẩn danh"}: ${lastMessage}`;
 

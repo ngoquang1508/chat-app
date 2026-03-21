@@ -381,6 +381,76 @@ export const useChatStore = create<ChatState>()(
           toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
         }
       },
+      hideMessage: async (messageId: string, conversationId: string) => {
+        try {
+          await chatService.hideMessage(messageId);
+          // Xóa khỏi local state
+          set((state) => ({
+            messages: {
+              ...state.messages,
+              [conversationId]: {
+                ...state.messages[conversationId],
+                items: state.messages[conversationId].items.filter(
+                  (m) => m._id !== messageId,
+                ),
+              },
+            },
+          }));
+        } catch (error) {
+          console.error("Lỗi khi ẩn tin nhắn", error);
+          toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+        }
+      },
+      recallMessage: async (messageId: string) => {
+        try {
+          await chatService.recallMessage(messageId);
+
+          set((state) => {
+            const updated = { ...state.messages };
+            let updatedConversations = [...state.conversations];
+
+            for (const convoId in updated) {
+              const items = updated[convoId].items;
+              const exists = items.some((m) => m._id === messageId);
+
+              if (exists) {
+                updated[convoId] = {
+                  ...updated[convoId],
+                  items: items.map((m) =>
+                    m._id === messageId
+                      ? { ...m, isRecalled: true, content: null }
+                      : m,
+                  ),
+                };
+
+                // Cập nhật lastMessage nếu tin bị thu hồi là tin cuối
+                updatedConversations = updatedConversations.map((c) => {
+                  if (c._id !== convoId) return c;
+                  if (c.lastMessage?._id !== messageId) return c;
+                  return {
+                    ...c,
+                    lastMessage: {
+                      ...c.lastMessage,
+                      content: null,
+                      isRecalled: true,
+                    },
+                  };
+                });
+
+                break;
+              }
+            }
+
+            return {
+              messages: updated,
+              conversations: updatedConversations,
+            };
+          });
+        } catch (error) {
+          console.error("Lỗi khi thu hồi tin nhắn", error);
+          toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+        }
+      },
     }),
     {
       name: "chat-storage",

@@ -18,7 +18,8 @@ export interface Group {
 
 export interface LastMessage {
   _id: string;
-  content: string;
+  content: string | null;
+  isRecalled?: boolean;
   createdAt: string;
   sender: {
     _id: string;
@@ -51,6 +52,7 @@ export interface ConversationResponse {
 }
 
 export interface Message {
+  isRecalled: boolean;
   _id: string;
   conversationId: string;
   type: "text" | "system";

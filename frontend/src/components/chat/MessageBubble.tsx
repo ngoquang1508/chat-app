@@ -1,4 +1,3 @@
-// components/chat/MessageBubble.tsx
 import { cn, formatMessageTime } from "@/lib/utils";
 import type { Message } from "@/types/chat";
 import { Card } from "../ui/card";
@@ -33,18 +32,36 @@ const MessageBubble = ({
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Card
-              className={cn(
-                "p-3",
-                message.isOwn
-                  ? "chat-bubble-sent border-0"
-                  : "chat-bubble-received",
-              )}
-            >
-              <p className="text-sm leading-relaxed wrap-break-word">
-                {message.content}
-              </p>
-            </Card>
+            {/* Hiện UI khác nhau khi đã thu hồi */}
+            {message.isRecalled ? (
+              <Card
+                className={cn(
+                  "p-3",
+                  message.isOwn
+                    ? "chat-bubble-sent border-0"
+                    : "chat-bubble-received",
+                )}
+              >
+                <p className="text-sm italic text-muted-foreground">
+                  {message.isOwn
+                    ? "Bạn đã thu hồi tin nhắn"
+                    : "Tin nhắn đã bị thu hồi"}
+                </p>
+              </Card>
+            ) : (
+              <Card
+                className={cn(
+                  "p-3",
+                  message.isOwn
+                    ? "chat-bubble-sent border-0"
+                    : "chat-bubble-received",
+                )}
+              >
+                <p className="text-sm leading-relaxed wrap-break-word">
+                  {message.content}
+                </p>
+              </Card>
+            )}
           </TooltipTrigger>
           <TooltipContent side={message.isOwn ? "left" : "right"}>
             {formatMessageTime(new Date(message.createdAt))}
@@ -52,8 +69,8 @@ const MessageBubble = ({
         </Tooltip>
       </TooltipProvider>
 
-      {/* Đã xem / Đã gửi */}
-      {message.isOwn && isLast && (
+      {/* Đã xem / Đã gửi — ẩn nếu đã thu hồi */}
+      {message.isOwn && isLast && !message.isRecalled && (
         <Badge
           variant="outline"
           className={cn(

@@ -101,4 +101,14 @@ export const chatService = {
     const res = await api.put(`/messages/${messageId}/unpin`);
     return res.data;
   },
+  
+  async hideMessage(messageId: string) {
+    const res = await api.put(`/messages/${messageId}/hide`);
+    return res.data;
+  },
+
+  async recallMessage(messageId: string) {
+    const res = await api.put(`/messages/${messageId}/recall`);
+    return res.data;
+  },
 };

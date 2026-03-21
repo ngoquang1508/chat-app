@@ -35,25 +35,13 @@ const groupSchema = new mongoose.Schema(
 
 const lastMessageSchema = new mongoose.Schema(
   {
-    _id: {
-      type: mongoose.Schema.Types.ObjectId,
-    },
-    content: {
-      type: String,
-      default: null,
-    },
-    sender: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    createdAt: {
-      type: Date,
-      default: null,
-    },
+    _id: { type: mongoose.Schema.Types.ObjectId },
+    content: { type: String, default: null },
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    createdAt: { type: Date, default: null },
+    isRecalled: { type: Boolean, default: false },
   },
-  {
-    _id: false,
-  },
+  { _id: false },
 );
 
 const mutedBySchema = new mongoose.Schema(

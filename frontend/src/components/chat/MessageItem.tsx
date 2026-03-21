@@ -1,4 +1,3 @@
-// components/chat/MessageItem.tsx
 import { cn, formatMessageTime } from "@/lib/utils";
 import type { Conversation, Message, Participant } from "@/types/chat";
 import { useState } from "react";
@@ -7,6 +6,7 @@ import UserAvatar from "./UserAvatar";
 import ActionButtons from "./ActionButtons";
 import MessageBubble from "./MessageBubble";
 import { toast } from "sonner";
+import { useChatStore } from "@/stores/useChatStore";
 
 interface MessageItemProps {
   message: Message;
@@ -15,8 +15,6 @@ interface MessageItemProps {
   selectedConvo: Conversation;
   lastMessageStatus: "delivered" | "seen";
   onReply?: (message: Message) => void;
-  onRecallForMe?: (message: Message) => void;
-  onRecallForAll?: (message: Message) => void;
   onPin?: (message: Message) => void;
 }
 
@@ -27,12 +25,11 @@ const MessageItem = ({
   selectedConvo,
   lastMessageStatus,
   onReply,
-  onRecallForMe,
-  onRecallForAll,
   onPin,
 }: MessageItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { hideMessage, recallMessage } = useChatStore();
 
   const isVisible = isHovered || isDropdownOpen;
 
@@ -62,11 +59,13 @@ const MessageItem = ({
   const actionProps = {
     isVisible,
     isOwn: message.isOwn ?? false,
+    isRecalled: message.isRecalled ?? false,
     onReply: () => onReply?.(message),
     onCopy: handleCopy,
-    onRecallForMe: () => onRecallForMe?.(message),
-    onRecallForAll: () => onRecallForAll?.(message),
     onPin: () => onPin?.(message),
+    onHide: () => hideMessage(message._id, message.conversationId),
+    onRecallForMe: () => hideMessage(message._id, message.conversationId),
+    onRecallForAll: () => recallMessage(message._id),
     onDropdownOpenChange: setIsDropdownOpen,
   };
 
@@ -82,7 +81,11 @@ const MessageItem = ({
   }
 
   return (
-    <div className="flex flex-col" data-message-item data-message-id={message._id}>
+    <div
+      className="flex flex-col"
+      data-message-item
+      data-message-id={message._id}
+    >
       {isShowTime && (
         <span className="flex justify-center text-xs text-muted-foreground mt-2.5 mb-1">
           {formatMessageTime(new Date(message.createdAt))}

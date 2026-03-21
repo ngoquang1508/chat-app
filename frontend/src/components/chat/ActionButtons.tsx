@@ -1,4 +1,3 @@
-// components/chat/ActionButtons.tsx
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import {
   DropdownMenu,
@@ -21,10 +20,12 @@ import { useState } from "react";
 interface ActionButtonsProps {
   isVisible: boolean;
   isOwn: boolean;
+  isRecalled: boolean;
   onReply: () => void;
   onCopy: () => void;
-  onRecallForMe: () => void; // xóa phía mình
-  onRecallForAll: () => void; // thu hồi với tất cả
+  onRecallForMe: () => void;
+  onRecallForAll: () => void;
+  onHide: () => void;
   onPin: () => void;
   onDropdownOpenChange: (open: boolean) => void;
 }
@@ -32,10 +33,12 @@ interface ActionButtonsProps {
 const ActionButtons = ({
   isVisible,
   isOwn,
+  isRecalled,
   onReply,
   onCopy,
   onRecallForMe,
   onRecallForAll,
+  onHide,
   onPin,
   onDropdownOpenChange,
 }: ActionButtonsProps) => {
@@ -59,37 +62,44 @@ const ActionButtons = ({
           isVisible ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       >
-        {/* Trả lời */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={onReply}
-              className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Reply className="w-3.5 h-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Trả lời</TooltipContent>
-        </Tooltip>
-
-        {/* Sao chép */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={onCopy}
-              className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Sao chép</TooltipContent>
-        </Tooltip>
-
-        {/* Ghim tin nhắn cho other */}
-        {!isOwn && (
+        {/* Trả lời — ẩn nếu đã thu hồi */}
+        {!isRecalled && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <button onClick={onPin} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+              <button
+                onClick={onReply}
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Reply className="w-3.5 h-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Trả lời</TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Sao chép — ẩn nếu đã thu hồi */}
+        {!isRecalled && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onCopy}
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Sao chép</TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Ghim — ẩn nếu đã thu hồi hoặc tin của mình */}
+        {!isOwn && !isRecalled && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onPin}
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
                 <Pin className="w-3.5 h-3.5" />
               </button>
             </TooltipTrigger>
@@ -97,29 +107,37 @@ const ActionButtons = ({
           </Tooltip>
         )}
 
-        {/* More */}
+        {/* More — luôn hiện */}
         <DropdownMenu onOpenChange={onDropdownOpenChange}>
-          {isOwn && (
-            // more icon - chỉ hiện với tin của mình
-            <DropdownMenuTrigger asChild>
-              <button className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                <MoreHorizontal className="w-3.5 h-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-          )}
+          <DropdownMenuTrigger asChild>
+            <button className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+              <MoreHorizontal className="w-3.5 h-3.5" />
+            </button>
+          </DropdownMenuTrigger>
           <DropdownMenuContent align={isOwn ? "end" : "start"} className="w-44">
-            {/* Thu hồi — chỉ hiện với tin của mình */}
-            {isOwn && (
+            {/* Ghim — ẩn nếu đã thu hồi */}
+            {!isRecalled && (
+              <DropdownMenuItem onClick={onPin}>
+                <Pin className="w-4 h-4 mr-2" />
+                Ghim tin nhắn
+              </DropdownMenuItem>
+            )}
+
+            {/* Thu hồi — chỉ tin của mình và chưa thu hồi */}
+            {isOwn && !isRecalled && (
               <DropdownMenuItem onSelect={() => setRecallOpen(true)}>
                 <Undo2 className="w-4 h-4 mr-2" />
                 Thu hồi
               </DropdownMenuItem>
             )}
-            {/* Ghim */}
-            <DropdownMenuItem onClick={onPin}>
-              <Pin className="w-4 h-4 mr-2" />
-              Ghim tin nhắn
-            </DropdownMenuItem>
+
+            {/* Ẩn — tin người khác HOẶC tin của mình đã thu hồi */}
+            {(!isOwn || isRecalled) && (
+              <DropdownMenuItem onClick={onHide}>
+                <EyeOff className="w-4 h-4 mr-2" />
+                Ẩn tin nhắn
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -135,7 +153,6 @@ const ActionButtons = ({
           </DialogHeader>
 
           <div className="flex flex-col gap-2 pt-2">
-            {/* Thu hồi với tất cả */}
             <button
               onClick={handleRecallForAll}
               className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left"
@@ -151,7 +168,6 @@ const ActionButtons = ({
               </div>
             </button>
 
-            {/* Xóa phía mình */}
             <button
               onClick={handleRecallForMe}
               className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left"
@@ -160,9 +176,9 @@ const ActionButtons = ({
                 <EyeOff className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-sm font-medium">Xóa phía tôi</p>
+                <p className="text-sm font-medium">Ẩn phía tôi</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Chỉ xóa trên thiết bị của bạn, người nhận vẫn thấy tin nhắn.
+                  Chỉ ẩn trên thiết bị của bạn, người nhận vẫn thấy tin nhắn.
                 </p>
               </div>
             </button>
