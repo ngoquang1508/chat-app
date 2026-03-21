@@ -2,7 +2,7 @@ import { useChatStore } from "@/stores/useChatStore";
 import ChatWelcomeScreen from "./ChatWelcomeScreen";
 import MessageItem from "./MessageItem";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { ArrowDown, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import type { Message } from "@/types/chat";
 
@@ -23,6 +23,7 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
   const [lastMessageStatus, setLastMessageStatus] = useState<
     "delivered" | "seen"
   >("delivered");
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   const messages = allMessages[activeConversationId!]?.items ?? [];
   const hasMore = allMessages[activeConversationId!]?.hasMore ?? false;
@@ -57,6 +58,7 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
     isAtBottomRef.current = true;
     prevMessageCountRef.current = 0;
     prevScrollHeightRef.current = 0;
+    setShowScrollBtn(false);
   }, [activeConversationId]);
 
   useLayoutEffect(() => {
@@ -68,11 +70,9 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
 
     if (newCount === 0) return;
 
-    // Lần đầu load tin của convo
     if (hasScrolledInitialRef.current !== activeConversationId) {
       requestAnimationFrame(() => {
         if (unreadCount > 0 && unreadCount < newCount) {
-          // Trường hợp 3: có tin chưa đọc → scroll đến tin chưa đọc đầu tiên
           const unreadIndex = newCount - unreadCount;
           const messageElements = container.querySelectorAll(
             "[data-message-item]",
@@ -85,7 +85,6 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
             scrollToBottom("instant");
           }
         } else {
-          // Trường hợp 1: không có tin chưa đọc → scroll xuống cuối
           scrollToBottom("instant");
         }
 
@@ -101,12 +100,10 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
       const addedCount = newCount - prevCount;
 
       if (addedCount === 1) {
-        // Trường hợp 2: tin nhắn mới → scroll xuống nếu đang ở cuối
         if (isAtBottomRef.current) {
           requestAnimationFrame(() => scrollToBottom("smooth"));
         }
       } else {
-        // Load thêm tin cũ → giữ vị trí scroll
         const prevScrollHeight = prevScrollHeightRef.current;
         const newScrollHeight = container.scrollHeight;
         container.scrollTop =
@@ -136,7 +133,11 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
 
     const distanceFromBottom =
       container.scrollHeight - container.scrollTop - container.clientHeight;
+
     isAtBottomRef.current = distanceFromBottom <= 50;
+
+    // Hiện nút khi cách đáy hơn 200px
+    setShowScrollBtn(distanceFromBottom > 200);
 
     if (container.scrollTop === 0 && hasMore && !messageLoading) {
       fetchMoreMessages();
@@ -158,7 +159,7 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
   }
 
   return (
-    <div className="pl-4 py-4 bg-primary-foreground h-full flex flex-col overflow-hidden">
+    <div className="pl-4 py-4 bg-primary-foreground h-full flex flex-col overflow-hidden relative">
       <div
         ref={containerRef}
         onScroll={handleScroll}
@@ -182,6 +183,16 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
           />
         ))}
       </div>
+
+      {/* Nút scroll to bottom */}
+      {showScrollBtn && (
+  <button
+    onClick={() => scrollToBottom("smooth")}
+    className="absolute bottom-4 left-1/2 -translate-x-1/2 p-2 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground hover:bg-muted/80 transition-all"
+  >
+    <ArrowDown className="w-4 h-4" />
+  </button>
+)}
     </div>
   );
 };
