@@ -4,6 +4,7 @@ import { useAuthStore } from "./useAuthStore";
 import type { SocketState } from "@/types/store";
 import { useChatStore } from "./useChatStore";
 import { isMuted, showNotification } from "@/lib/notification";
+import { useFriendStore } from "@/stores/useFriendStore";
 
 const baseURL = import.meta.env.VITE_SOCKET_URL;
 
@@ -30,6 +31,23 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     // online users
     socket.on("online-users", (userIds) => {
       set({ onlineUsers: userIds });
+    });
+
+    // Nhận lời mời kết bạn realtime
+    socket.on("friend-request:received", (request) => {
+      useFriendStore.getState().addReceivedRequest(request);
+      showNotification(
+        "Lời mời kết bạn",
+        `${request.from.displayName} muốn kết bạn với bạn`,
+      );
+    });
+
+    // Được chấp nhận kết bạn
+    socket.on("friend-request:accepted", ({ displayName }) => {
+      showNotification(
+        "Kết bạn thành công",
+        `${displayName} đã chấp nhận lời mời kết bạn`,
+      );
     });
 
     // new message

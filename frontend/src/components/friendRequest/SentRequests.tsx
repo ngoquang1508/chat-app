@@ -12,6 +12,20 @@ const SentRequests = () => {
     );
   }
 
+  const getStatusText = (status?: string) => {
+    switch (status) {
+      case "accepted":
+        return (
+          <p className="text-sm text-green-500 font-medium">Đã chấp nhận</p>
+        );
+      case "declined":
+        return <p className="text-sm text-destructive">Đã từ chối</p>;
+      default:
+        return (
+          <p className="text-sm text-muted-foreground">Đang chờ trả lời...</p>
+        );
+    }
+  };
   return (
     <div className="space-y-3 mt-4">
       <>
@@ -20,9 +34,7 @@ const SentRequests = () => {
             key={req._id}
             requestInfo={req}
             type="sent"
-            actions={
-              <p className="text-muted-foreground text-sm">Đang chờ trả lời...</p>
-            }
+            actions={getStatusText(req.status)}
           />
         ))}
       </>

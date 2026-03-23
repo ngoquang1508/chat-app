@@ -20,31 +20,33 @@ const FriendRequestDialog = ({ open, setOpen }: FriendRequestDialogProps) => {
   const { getAllFriendRequests } = useFriendStore();
 
   useEffect(() => {
-    const loadRequest = async () => {
-      try {
-        await getAllFriendRequests();
-      } catch (error) {
-        console.error("Lỗi xảy ra khi load requests", error);
-      }
-    };
+    if (open) {
+      // Báo cho store biết dialog đang mở — socket sẽ không tăng badge
+      useFriendStore.setState({ isRequestDialogOpen: true, unreadRequestCount: 0 });
 
-    loadRequest();
-  }, []);
+      const loadRequests = async () => {
+        try {
+          await getAllFriendRequests();
+          // getAllFriendRequests đã kiểm tra isRequestDialogOpen nên sẽ set badge = 0
+        } catch (error) {
+          console.error("Lỗi xảy ra khi tải danh sách lời mời kết bạn", error);
+        }
+      };
+
+      loadRequests();
+    } else {
+      // Dialog đóng → cho phép badge tăng trở lại khi có socket event mới
+      useFriendStore.setState({ isRequestDialogOpen: false });
+    }
+  }, [open]);
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={setOpen}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent aria-describedby={undefined} className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Lời mời kết bạn</DialogTitle>
         </DialogHeader>
-        <Tabs
-          value={tab}
-          onValueChange={setTab}
-          className="w-full"
-        >
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="received">Đã nhận</TabsTrigger>
             <TabsTrigger value="sent">Đã gửi</TabsTrigger>

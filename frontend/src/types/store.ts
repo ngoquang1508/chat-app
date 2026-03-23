@@ -88,17 +88,26 @@ export interface SocketState {
   disconnectSocket: () => void;
 }
 
+type AddFriendResult = {
+  resultMessage: string;
+  status: "success" | "error";
+};
+ 
 export interface FriendState {
   friends: Friend[];
   loading: boolean;
   receivedList: FriendRequest[];
   sentList: FriendRequest[];
+  unreadRequestCount: number;
+  isRequestDialogOpen: boolean; // flag để socket biết dialog có đang mở không
   searchByUsername: (username: string) => Promise<User | null>;
-  addFriend: (to: string, message?: string) => Promise<string>;
+  addFriend: (to: string, message?: string) => Promise<AddFriendResult>;
   getAllFriendRequests: () => Promise<void>;
   acceptRequest: (requestId: string) => Promise<void>;
   declineRequest: (requestId: string) => Promise<void>;
   getFriends: () => Promise<void>;
+  addReceivedRequest: (request: FriendRequest) => void;
+  addFriendToList: (friend: Friend) => void;
 }
 
 export interface UserState {

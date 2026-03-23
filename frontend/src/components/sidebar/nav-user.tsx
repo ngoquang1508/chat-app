@@ -23,12 +23,14 @@ import FriendRequestDialog from "../friendRequest/FriendRequestDialog";
 import ProfileDialog from "../profile/ProfileDialog";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { cn } from "@/lib/utils";
+import { useFriendStore } from "@/stores/useFriendStore";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const { isDark } = useThemeStore();
   const [friendRequestOpen, setFriendRequestOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { unreadRequestCount } = useFriendStore();
 
   return (
     <>
@@ -106,9 +108,20 @@ export function NavUser({ user }: { user: User }) {
                       ? "text-white! hover:bg-gray-600!"
                       : "hover:bg-gray-300!",
                   )}
-                  onClick={() => setFriendRequestOpen(true)}
+                  onClick={() => {
+                    // Chỉ mở dialog — việc reset badge được xử lý bên trong
+                    // FriendRequestDialog sau khi fetch hoàn tất, tránh race condition
+                    setFriendRequestOpen(true);
+                  }}
                 >
-                  <Bell className="text-muted-foreground dark:group-focus:text-accent-foreground!" />
+                  <div className="relative">
+                    <Bell className="text-muted-foreground" />
+                    {unreadRequestCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                        {unreadRequestCount > 9 ? "9+" : unreadRequestCount}
+                      </span>
+                    )}
+                  </div>
                   Thông Báo
                 </DropdownMenuItem>
               </DropdownMenuGroup>

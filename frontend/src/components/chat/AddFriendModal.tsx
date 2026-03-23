@@ -62,9 +62,9 @@ const AddFriendModal = ({ open, onOpenChange }: Props) => {
     try {
       const message = await addFriend(searchUser._id, data.message.trim());
       if (message.status === "success") {
-        toast.success(message);
+        toast.success("Gửi lời mời kết bạn thành công");
       } else {
-        toast.info(message);
+        toast.info("Gửi lời mời kết bạn thất bại");
       }
       handleCancel();
       onOpenChange(false);

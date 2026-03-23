@@ -32,6 +32,7 @@ export interface FriendRequest {
     avatarUrl?: string;
   };
   message: string;
+  status?: "pending" | "accepted" | "declined";
   createdAt: string;
   updatedAt: string;
 }

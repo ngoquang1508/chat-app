@@ -4,7 +4,8 @@ import { Button } from "../ui/button";
 import { toast } from "sonner";
 
 const ReceivedRequests = () => {
-  const { acceptRequest, declineRequest, loading, receivedList } = useFriendStore();
+  const { acceptRequest, declineRequest, loading, receivedList } =
+    useFriendStore();
 
   if (!receivedList || receivedList.length === 0) {
     return (
@@ -39,24 +40,30 @@ const ReceivedRequests = () => {
           key={req._id}
           requestInfo={req}
           actions={
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="primary"
-                onClick={() => handleAccept(req._id)}
-                disabled={loading}
-              >
-                Chấp nhận
-              </Button>
-              <Button
-                size="sm"
-                variant="destructiveOutline"
-                onClick={() => handleDecline(req._id)}
-                disabled={loading}
-              >
-                Từ chối
-              </Button>
-            </div>
+            req.status === "accepted" ? (
+              <p className="text-sm text-green-500 font-medium">Đã kết bạn</p>
+            ) : req.status === "declined" ? (
+              <p className="text-sm text-destructive">Đã từ chối</p>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => handleAccept(req._id)}
+                  disabled={loading}
+                >
+                  Chấp nhận
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructiveOutline"
+                  onClick={() => handleDecline(req._id)}
+                  disabled={loading}
+                >
+                  Từ chối
+                </Button>
+              </div>
+            )
           }
           type="received"
         />
