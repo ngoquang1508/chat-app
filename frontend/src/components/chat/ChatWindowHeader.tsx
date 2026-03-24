@@ -193,7 +193,7 @@ const ChatWindowHeader = ({
                     <ChevronUp className="w-3 h-3" />
                   </button>
                 </div>
-                <div className="max-h-56 overflow-y-auto">
+                <div className="max-h-56 overflow-y-auto beautiful-scrollbar">
                   {[...pinnedMessages].reverse().map((msg) => (
                     <div
                       key={msg._id}
