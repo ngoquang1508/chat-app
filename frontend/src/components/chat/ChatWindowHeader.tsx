@@ -9,8 +9,8 @@ import GroupChatAvatar from "./GroupChatAvatar";
 import { useSocketStore } from "@/stores/useSocketStore";
 import { Button } from "@/components/ui/button";
 import { X, ChevronDown, MessageCircle, ChevronUp } from "lucide-react";
-
 import { useEffect, useState } from "react";
+
 interface ChatWindowHeaderProps {
   chat?: Conversation;
   pinnedMessages?: Message[];
@@ -56,7 +56,6 @@ const ChatWindowHeader = ({
 
   const latestPinned = pinnedMessages[pinnedMessages.length - 1];
 
-  // Lấy tên người gửi từ participants
   const getSenderName = (senderId: string) => {
     const participant = chat?.participants.find(
       (p) => p._id.toString() === senderId.toString(),
@@ -79,7 +78,7 @@ const ChatWindowHeader = ({
               {chat.type === "direct" ? (
                 <>
                   <UserAvatar
-                    type="sidebar"
+                    type="chat"
                     name={otherUser?.displayName || "halo"}
                     avatarUrl={otherUser?.avatarUrl || undefined}
                   />
@@ -92,10 +91,7 @@ const ChatWindowHeader = ({
                   />
                 </>
               ) : (
-                <GroupChatAvatar
-                  participants={chat.participants}
-                  type="sidebar"
-                />
+                <GroupChatAvatar participants={chat.participants} type="chat" />
               )}
             </div>
             <h2 className="font-semibold text-foreground truncate">
@@ -118,7 +114,6 @@ const ChatWindowHeader = ({
       {/* Khu vực ghim */}
       {latestPinned && (
         <div className="border-t border-border">
-          {/* Banner tin mới nhất — ẩn khi danh sách mở */}
           {!isListOpen && (
             <div className="flex items-center gap-2 px-4 py-2">
               <MessageCircle className="w-4 h-4 text-primary shrink-0" />
@@ -155,7 +150,6 @@ const ChatWindowHeader = ({
             </div>
           )}
 
-          {/* Danh sách mở rộng */}
           {isListOpen && (
             <>
               <div className="flex items-center justify-between px-4 py-2">
@@ -193,35 +187,13 @@ const ChatWindowHeader = ({
                         Tin nhắn của {getSenderName(msg.senderId as string)}.
                       </p>
                     </button>
+
                     <button
-                      onClick={() => onUnpin?.(latestPinned._id)}
+                      onClick={() => onUnpin?.(msg._id)}
                       className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
-                    {/* <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted text-muted-foreground shrink-0">
-                          <MoreHorizontal className="w-3.5 h-3.5" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-36">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            onScrollToMessage?.(msg._id);
-                            setIsListOpen(false);
-                          }}
-                        >
-                          Xem tin nhắn
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onUnpin?.(msg._id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          Bỏ ghim
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu> */}
                   </div>
                 ))}
               </div>
