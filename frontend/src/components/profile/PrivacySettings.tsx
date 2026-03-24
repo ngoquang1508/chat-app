@@ -20,7 +20,7 @@ const PrivacySettings = () => (
       </CardDescription>
     </CardHeader>
 
-    <CardContent className="space-y-6">
+    <CardContent className="space-y-6 mt-6">
       <div className="space-y-4">
         <Button
           variant="outline"

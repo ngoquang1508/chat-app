@@ -1,4 +1,4 @@
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Settings } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -21,7 +21,7 @@ const PreferencesForm = () => {
     <Card className="glass-strong border-border/30">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sun className="h-5 w-5 text-primary" />
+          <Settings className="h-5 w-5 text-primary" />
           Tuỳ chỉnh ứng dụng
         </CardTitle>
         <CardDescription>
@@ -29,7 +29,7 @@ const PreferencesForm = () => {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 mt-6">
         {/* Dark Mode */}
         <div className="flex items-center justify-between">
           <div>
