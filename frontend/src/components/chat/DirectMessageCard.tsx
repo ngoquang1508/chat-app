@@ -28,15 +28,21 @@ const DirectMessageCard = ({ convo }: { convo: Conversation }) => {
   const isRecalled = convo.lastMessage?.isRecalled ?? false;
   const senderId = convo.lastMessage?.sender?._id;
 
-  const displayLastMessage = isRecalled
-    ? senderId === user._id
-      ? "Bạn đã thu hồi tin nhắn"
-      : "Tin nhắn đã bị thu hồi"
-    : user._id === senderId
-      ? `Bạn: ${lastMessage}`
-      : `${lastMessage}`;
+  let displayLastMessage;
 
-      const handleSelectConversation = async (id: string) => {
+  if (convo.lastMessage === null) {
+    displayLastMessage = "Chưa có tin nhắn nào.";
+  } else {
+    displayLastMessage = isRecalled
+      ? senderId === user._id
+        ? "Bạn đã thu hồi tin nhắn"
+        : "Tin nhắn đã bị thu hồi"
+      : user._id === senderId
+        ? `Bạn: ${lastMessage}`
+        : `${lastMessage}`;
+  }
+
+  const handleSelectConversation = async (id: string) => {
     setActiveConversation(id);
     if (!messages[id]) {
       await fetchMessages();
