@@ -15,6 +15,8 @@ interface MessageBubbleProps {
   lastMessageId?: string;
   lastMessageStatus: "delivered" | "seen";
   isPinned?: boolean;
+  senderName?: string;
+  showSenderName?: boolean;
 }
 
 const MessageBubble = ({
@@ -22,6 +24,8 @@ const MessageBubble = ({
   lastMessageId,
   lastMessageStatus,
   isPinned = false,
+  senderName,
+  showSenderName = false,
 }: MessageBubbleProps) => {
   const isLast = message._id === lastMessageId;
 
@@ -44,7 +48,6 @@ const MessageBubble = ({
                     : "chat-bubble-received",
                 )}
               >
-                {/* icon ghim */}
                 {isPinned && (
                   <Pin
                     className={cn(
@@ -71,13 +74,20 @@ const MessageBubble = ({
                 {isPinned && (
                   <div
                     className={cn(
-                      "absolute -top-2 flex items-center justify-center w-5 h-5 rounded-full bg-primary shadow-md shadow-primary/40 ring-2 ring-background animate-bounce-once",
-                      message.isOwn ? "-left-2" : "-right-2",
+                      "absolute -top-2 flex items-center justify-center w-5 h-5 rounded-full bg-primary shadow-md shadow-primary/40 ring-2 ring-background animate-pin-nail",
+                      message.isOwn ? "left-1.5" : "right-1.5",
                     )}
                   >
                     <Pin className="w-2.5 h-2.5 text-primary-foreground rotate-45" />
                   </div>
                 )}
+
+                {showSenderName && !message.isOwn && senderName && (
+                  <p className="text-xs font-semibold text-primary mb-1 whitespace-nowrap">
+                    {senderName}
+                  </p>
+                )}
+
                 <p className="text-sm leading-relaxed wrap-break-word">
                   {message.content}
                 </p>

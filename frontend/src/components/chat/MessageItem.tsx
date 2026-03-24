@@ -120,6 +120,8 @@ const MessageItem = ({
               message={message}
               lastMessageId={selectedConvo.lastMessage?._id}
               lastMessageStatus={lastMessageStatus}
+              senderName={participant?.displayName}
+              showSenderName={isGroupBreak}
             />
 
             <TooltipProvider delayDuration={100}>
@@ -139,6 +141,8 @@ const MessageItem = ({
               message={message}
               lastMessageId={selectedConvo.lastMessage?._id}
               lastMessageStatus={lastMessageStatus}
+              senderName={participant?.displayName}
+              showSenderName={isGroupBreak}
             />
           </>
         )}
