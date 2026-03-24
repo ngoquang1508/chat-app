@@ -34,7 +34,7 @@ const FriendListModal = ({ onClose }: FriendListModalProps) => {
           danh sách bạn bè
         </h1>
 
-        <div className="space-y-2 max-h-60 overflow-y-auto">
+        <div className="space-y-2 max-h-60 overflow-y-auto beautiful-scrollbar">
           {friends.map((friend) => (
             <Card
               onClick={() => handleAddConversation(friend._id)}

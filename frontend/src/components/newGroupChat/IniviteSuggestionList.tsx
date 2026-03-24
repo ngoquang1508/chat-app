@@ -15,7 +15,7 @@ const IniviteSuggestionList = ({
   }
 
   return (
-    <div className="border rounded-lg mt-2 max-h-[180px] overflow-y-auto divide-y">
+    <div className="border rounded-lg mt-2 max-h-[180px] overflow-y-auto divide-y beautiful-scrollbar">
       {filteredFriends.map((friend) => (
         <div
           key={friend._id}
