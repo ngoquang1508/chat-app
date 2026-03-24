@@ -116,6 +116,7 @@ const MessageItem = ({
             </div>
 
             <MessageBubble
+              isPinned={actionProps.isPinned}
               message={message}
               lastMessageId={selectedConvo.lastMessage?._id}
               lastMessageStatus={lastMessageStatus}
@@ -134,6 +135,7 @@ const MessageItem = ({
             </TooltipProvider>
 
             <MessageBubble
+              isPinned={actionProps.isPinned}
               message={message}
               lastMessageId={selectedConvo.lastMessage?._id}
               lastMessageStatus={lastMessageStatus}

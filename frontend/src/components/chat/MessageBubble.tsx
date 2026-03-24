@@ -8,17 +8,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import { Pin } from "lucide-react";
 
 interface MessageBubbleProps {
   message: Message;
   lastMessageId?: string;
   lastMessageStatus: "delivered" | "seen";
+  isPinned?: boolean;
 }
 
 const MessageBubble = ({
   message,
   lastMessageId,
   lastMessageStatus,
+  isPinned = false,
 }: MessageBubbleProps) => {
   const isLast = message._id === lastMessageId;
 
@@ -32,16 +35,24 @@ const MessageBubble = ({
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
-            {/* Hiện UI khác nhau khi đã thu hồi */}
             {message.isRecalled ? (
               <Card
                 className={cn(
-                  "p-3",
+                  "relative p-3",
                   message.isOwn
                     ? "chat-bubble-sent border-0"
                     : "chat-bubble-received",
                 )}
               >
+                {/* icon ghim */}
+                {isPinned && (
+                  <Pin
+                    className={cn(
+                      "absolute -top-2.5 w-3.5 h-3.5 text-primary rotate-45",
+                      message.isOwn ? "left-2" : "right-2",
+                    )}
+                  />
+                )}
                 <p className="text-sm italic text-foreground">
                   {message.isOwn
                     ? "Bạn đã thu hồi tin nhắn"
@@ -51,12 +62,22 @@ const MessageBubble = ({
             ) : (
               <Card
                 className={cn(
-                  "p-3",
+                  "relative p-3",
                   message.isOwn
                     ? "chat-bubble-sent border-0"
                     : "chat-bubble-received",
                 )}
               >
+                {isPinned && (
+                  <div
+                    className={cn(
+                      "absolute -top-2 flex items-center justify-center w-5 h-5 rounded-full bg-primary shadow-md shadow-primary/40 ring-2 ring-background animate-bounce-once",
+                      message.isOwn ? "-left-2" : "-right-2",
+                    )}
+                  >
+                    <Pin className="w-2.5 h-2.5 text-primary-foreground rotate-45" />
+                  </div>
+                )}
                 <p className="text-sm leading-relaxed wrap-break-word">
                   {message.content}
                 </p>
@@ -69,7 +90,6 @@ const MessageBubble = ({
         </Tooltip>
       </TooltipProvider>
 
-      {/* Đã xem / Đã gửi — ẩn nếu đã thu hồi */}
       {message.isOwn && isLast && !message.isRecalled && (
         <Badge
           variant="outline"
