@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import { Pin } from "lucide-react";
+import { Pin, Reply } from "lucide-react";
 
 interface MessageBubbleProps {
   message: Message;
@@ -17,6 +17,7 @@ interface MessageBubbleProps {
   isPinned?: boolean;
   senderName?: string;
   showSenderName?: boolean;
+  onScrollToMessage?: (messageId: string) => void; // ✅ click vào quote → scroll
 }
 
 const MessageBubble = ({
@@ -26,6 +27,7 @@ const MessageBubble = ({
   isPinned = false,
   senderName,
   showSenderName = false,
+  onScrollToMessage,
 }: MessageBubbleProps) => {
   const isLast = message._id === lastMessageId;
 
@@ -80,6 +82,30 @@ const MessageBubble = ({
                   >
                     <Pin className="w-2.5 h-2.5 text-primary-foreground rotate-45" />
                   </div>
+                )}
+
+                {/* Quoted message */}
+                {message.replyTo && (
+                  <button
+                    onClick={() =>
+                      onScrollToMessage?.(message.replyTo!._id)
+                    }
+                    className={cn(
+                      "w-full text-left px-2 py-1.5 rounded border-l-4 border-primary bg-black/10 hover:bg-black/15 transition-colors",
+                    )}
+                  >
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Reply className="w-3 h-3 text-white shrink-0" />
+                      <span className="text-xs font-semibold text-white">
+                        Trả lời
+                      </span>
+                    </div>
+                    <p className="text-xs truncate">
+                      {message.replyTo.isRecalled
+                        ? "Tin nhắn đã bị thu hồi"
+                        : message.replyTo.content}
+                    </p>
+                  </button>
                 )}
 
                 {showSenderName && !message.isOwn && senderName && (

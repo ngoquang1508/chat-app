@@ -51,6 +51,14 @@ export interface ConversationResponse {
   conversations: Conversation[];
 }
 
+export interface ReplyTo {
+  senderName: string;
+  _id: string;
+  content: string | null;
+  senderId: string;
+  isRecalled: boolean;
+}
+
 export interface Message {
   isRecalled: boolean;
   _id: string;
@@ -65,4 +73,5 @@ export interface Message {
   isPinned: boolean;
   pinnedBy: string;
   pinnedAt: Date;
+  replyTo?: ReplyTo | null;
 }

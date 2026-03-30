@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowDown, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import type { Message } from "@/types/chat";
+import { toast } from "sonner";
 
 interface ChatWindowBodyProps {
   onPin?: (message: Message) => void;
@@ -144,6 +145,29 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
     }
   };
 
+  const handleScrollToMessage = (messageId: string) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Tìm element dựa trên attribute data-message-id
+    const targetEl = container.querySelector(
+      `[data-message-id="${messageId}"]`,
+    ) as HTMLElement;
+
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      // Hiệu ứng lóe sáng (Highlight) để người dùng dễ nhận biết
+      targetEl.classList.add("highlight-message");
+      setTimeout(() => {
+        targetEl.classList.remove("highlight-message");
+      }, 2000);
+    } else {
+      // Nếu không tìm thấy (có thể tin nhắn cũ quá chưa load)
+      toast.info("Tin nhắn đã quá cũ hoặc không còn tồn tại");
+    }
+  };
+
   if (!selectedConvo) return <ChatWelcomeScreen />;
 
   if (!messages?.length) {
@@ -179,6 +203,7 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
             selectedConvo={selectedConvo}
             lastMessageStatus={lastMessageStatus}
             onPin={onPin}
+            onScrollToMessage={handleScrollToMessage}
             data-message-item
           />
         ))}
@@ -186,13 +211,13 @@ const ChatWindowBody = ({ onPin }: ChatWindowBodyProps) => {
 
       {/* Nút scroll to bottom */}
       {showScrollBtn && (
-  <button
-    onClick={() => scrollToBottom("smooth")}
-    className="absolute bottom-4 left-1/2 -translate-x-1/2 p-2 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground hover:bg-muted/80 transition-all"
-  >
-    <ArrowDown className="w-4 h-4" />
-  </button>
-)}
+        <button
+          onClick={() => scrollToBottom("smooth")}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 p-2 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground hover:bg-muted/80 transition-all"
+        >
+          <ArrowDown className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 };

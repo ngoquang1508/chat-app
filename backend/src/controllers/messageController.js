@@ -8,7 +8,7 @@ import { io } from "../socket/index.js";
 
 export const sendDirectMessage = async (req, res) => {
   try {
-    const { recipientId, content, conversationId } = req.body;
+    const { recipientId, content, conversationId, replyTo } = req.body;
     const senderId = req.user._id;
 
     let conversation;
@@ -47,6 +47,13 @@ export const sendDirectMessage = async (req, res) => {
       conversationId: conversation._id,
       senderId,
       content,
+      replyTo: replyTo || null,
+    });
+
+    // populate replyTo trước khi emit
+    await message.populate({
+      path: "replyTo",
+      select: "content senderId isRecalled",
     });
 
     updateConversationAfterCreateMessage(conversation, message, senderId);
@@ -64,7 +71,7 @@ export const sendDirectMessage = async (req, res) => {
 
 export const sendGroupMessage = async (req, res) => {
   try {
-    const { conversationId, content } = req.body;
+    const { conversationId, content, replyTo } = req.body;
     const senderId = req.user._id;
     const conversation = req.conversation;
 
@@ -76,6 +83,12 @@ export const sendGroupMessage = async (req, res) => {
       conversationId,
       senderId,
       content,
+      replyTo: replyTo || null,
+    });
+
+    await message.populate({
+      path: "replyTo",
+      select: "content senderId isRecalled",
     });
 
     updateConversationAfterCreateMessage(conversation, message, senderId);

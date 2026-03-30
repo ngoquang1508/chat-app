@@ -18,6 +18,7 @@ export const useChatStore = create<ChatState>()(
       messageLoading: false,
       pinnedMessages: [],
       loading: false,
+      replyingTo: null,
 
       setActiveConversation: (id) => set({ activeConversationId: id }),
       reset: () => {
@@ -108,7 +109,7 @@ export const useChatStore = create<ChatState>()(
           set({ messageLoading: false });
         }
       },
-      sendDirectMessage: async (recipientId, content, imgUrl) => {
+      sendDirectMessage: async (recipientId, content, imgUrl, replyTo) => {
         try {
           const { activeConversationId } = get();
           await chatService.sendDirectMessage(
@@ -116,23 +117,26 @@ export const useChatStore = create<ChatState>()(
             content,
             imgUrl,
             activeConversationId || undefined,
+            replyTo,
           );
           set((state) => ({
             conversations: state.conversations.map((c) =>
               c._id === activeConversationId ? { ...c, seenBy: [] } : c,
             ),
+            replyingTo: null,
           }));
         } catch (error) {
           console.error("Lỗi xảy ra khi gửi direct message", error);
         }
       },
-      sendGroupMessage: async (conversationId, content, imgUrl) => {
+      sendGroupMessage: async (conversationId, content, imgUrl, replyTo) => {
         try {
-          await chatService.sendGroupMessage(conversationId, content, imgUrl);
+          await chatService.sendGroupMessage(conversationId, content, imgUrl, replyTo);
           set((state) => ({
             conversations: state.conversations.map((c) =>
               c._id === get().activeConversationId ? { ...c, seenBy: [] } : c,
             ),
+            replyingTo: null,
           }));
         } catch (error) {
           console.error("Lỗi xảy ra gửi group message", error);
@@ -452,6 +456,7 @@ export const useChatStore = create<ChatState>()(
           toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
         }
       },
+      setReplyingTo: (message) => set({ replyingTo: message }),
     }),
     {
       name: "chat-storage",

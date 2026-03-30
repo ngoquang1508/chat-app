@@ -16,6 +16,7 @@ interface MessageItemProps {
   lastMessageStatus: "delivered" | "seen";
   onReply?: (message: Message) => void;
   onPin?: (message: Message) => void;
+  onScrollToMessage?: (messageId: string) => void;
 }
 
 const MessageItem = ({
@@ -26,10 +27,11 @@ const MessageItem = ({
   lastMessageStatus,
   onReply,
   onPin,
+  onScrollToMessage,
 }: MessageItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { hideMessage, recallMessage, pinnedMessages, unpinMessage } =
+  const { hideMessage, recallMessage, pinnedMessages, unpinMessage, setReplyingTo } =
     useChatStore();
 
   const isVisible = isHovered || isDropdownOpen;
@@ -62,7 +64,10 @@ const MessageItem = ({
     isOwn: message.isOwn ?? false,
     isRecalled: message.isRecalled ?? false,
     isPinned: pinnedMessages.some((m) => m._id === message._id),
-    onReply: () => onReply?.(message),
+    onReply: () => {
+      setReplyingTo(message); 
+      onReply?.(message);
+    },
     onCopy: handleCopy,
     onPin: () => onPin?.(message),
     onHide: () => hideMessage(message._id, message.conversationId),
@@ -122,6 +127,7 @@ const MessageItem = ({
               lastMessageStatus={lastMessageStatus}
               senderName={participant?.displayName}
               showSenderName={isGroupBreak}
+              onScrollToMessage={onScrollToMessage}
             />
 
             <TooltipProvider delayDuration={100}>
@@ -143,6 +149,7 @@ const MessageItem = ({
               lastMessageStatus={lastMessageStatus}
               senderName={participant?.displayName}
               showSenderName={isGroupBreak}
+              onScrollToMessage={onScrollToMessage}
             />
           </>
         )}

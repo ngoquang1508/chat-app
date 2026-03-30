@@ -204,7 +204,11 @@ export const getMessages = async (req, res) => {
     let messages = await Message.find(query)
       .select("+isRecalled +recalledAt +deletedFor")
       .sort({ createdAt: -1 })
-      .limit(Number(limit) + 1);
+      .limit(Number(limit) + 1)
+      .populate({
+        path: "replyTo",
+        select: "content senderId isRecalled"
+      })
 
     let nextCursor = null;
     if (messages.length > Number(limit)) {

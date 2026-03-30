@@ -32,12 +32,14 @@ export const chatService = {
     content: string = "",
     imgUrl?: string,
     conversationId?: string,
+    replyTo?: string | null,
   ) {
     const res = await api.post("/messages/direct", {
       recipientId,
       content,
       imgUrl,
       conversationId,
+      replyTo,
     });
 
     return res.data.message;
@@ -47,11 +49,13 @@ export const chatService = {
     conversationId: string,
     content: string = "",
     imgUrl?: string,
+    replyTo?: string | null,
   ) {
     const res = await api.post("/messages/group", {
       conversationId,
       content,
       imgUrl,
+      replyTo,
     });
     return res.data.message;
   },
@@ -101,7 +105,7 @@ export const chatService = {
     const res = await api.put(`/messages/${messageId}/unpin`);
     return res.data;
   },
-  
+
   async hideMessage(messageId: string) {
     const res = await api.put(`/messages/${messageId}/hide`);
     return res.data;

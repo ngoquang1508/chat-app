@@ -44,6 +44,7 @@ export interface ChatState {
   messageLoading: boolean;
   loading: boolean;
   pinnedMessages: Message[];
+  replyingTo: Message | null;
   reset: () => void;
 
   setActiveConversation: (id: string | null) => void;
@@ -53,12 +54,14 @@ export interface ChatState {
   sendDirectMessage: (
     recipientId: string,
     content: string,
-    imgUrl?: string
+    imgUrl?: string,
+    replyTo?: string | null,
   ) => Promise<void>;
   sendGroupMessage: (
     conversationId: string,
     content: string,
-    imgUrl?: string
+    imgUrl?: string,
+    replyTo?: string | null,
   ) => Promise<void>;
   // add message
   addMessage: (message: Message) => Promise<void>;
@@ -79,6 +82,7 @@ export interface ChatState {
   unpinMessage: (messageId: string) => Promise<void>;
   hideMessage: (messageId: string, conversationId: string) => Promise<void>;
   recallMessage: (messageId: string) => Promise<void>;
+  setReplyingTo: (message: Message | null) => void
 }
 
 export interface SocketState {
